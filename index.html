@@ -226,35 +226,6 @@
       .vinyl { animation: none; }
     }
 
-    .chip {
-      position: absolute;
-      z-index: 4;
-      top: 0.75rem;
-      left: calc(var(--pw) - 0.75rem);
-      transform: translateX(-100%);
-      right: auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.4rem 0.75rem;
-      background: rgba(18, 18, 18, 0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: clamp(0.7rem, 2vw, 0.8rem);
-      color: var(--text);
-      letter-spacing: 0.02em;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    }
-
-    .chip svg {
-      width: 14px;
-      height: 14px;
-      flex-shrink: 0;
-      color: var(--accent);
-    }
-
     .counter {
       position: absolute;
       z-index: 4;
@@ -539,12 +510,6 @@
         overflow: hidden;
       }
       .hero-stage { --pw: 62%; --vw: 0.96; max-width: 880px; }
-      .chip {
-        top: 1rem;
-        left: calc(var(--pw) - 1rem);
-        transform: translateX(-100%);
-        right: auto;
-      }
       .counter { top: 1rem; left: 1rem; }
     }
 
@@ -561,8 +526,8 @@
     /* —— Editor —— */
     .edit-toggle {
       position: fixed;
-      top: max(1rem, var(--safe-top));
-      left: max(1rem, var(--safe-left));
+      bottom: max(1.25rem, var(--safe-bottom));
+      left: max(1.25rem, var(--safe-left));
       z-index: 60;
       border: 1px solid var(--border);
       background: rgba(30,30,30,0.9);
@@ -766,12 +731,6 @@
     <section class="hero" aria-label="主图画廊">
       <div class="hero-stage">
         <div class="counter" id="counter" aria-live="polite">1 / 5</div>
-        <div class="chip" title="当前曲目">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
-          </svg>
-          <span id="chip-track">雾里弦声</span>
-        </div>
         <div class="hero-photo">
           <img id="hero-img" src="assets/hero.jpg" alt="雾锁山峦，晨光微露" width="800" height="800" />
         </div>
@@ -1060,7 +1019,6 @@
       });
       const vinylImg = document.getElementById("vinyl-img");
       const counter = document.getElementById("counter");
-      const chipTrack = document.getElementById("chip-track");
       const poemTitle = document.getElementById("poem-title");
       const poemAuthor = document.getElementById("poem-author");
       const poemVerse = document.getElementById("poem-verse");
@@ -1131,7 +1089,6 @@
         poemVerse.innerHTML = (item.verse || []).map((line) => "<p>" + escapeHtml(line) + "</p>").join("");
         descTitle.textContent = item.descTitle;
         descBody.textContent = item.desc;
-        chipTrack.textContent = item.track;
         pillTrack.textContent = "🎵 " + item.track;
         counter.textContent = (i + 1) + " / " + GALLERY.length;
 
