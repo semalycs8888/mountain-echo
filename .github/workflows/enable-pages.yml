@@ -1,0 +1,79 @@
+name: Enable GitHub Pages
+
+# One-shot: the cloud-agent GitHub App token cannot set Pages.
+# GITHUB_TOKEN with pages:write can create the legacy site (branch main, folder /).
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/enable-pages.yml
+
+permissions:
+  pages: write
+  contents: read
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable Pages from main /
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const body = {
+              build_type: "legacy",
+              source: { branch: "main", path: "/" },
+            };
+
+            async function createOrUpdate() {
+              try {
+                const res = await github.request("POST /repos/{owner}/{repo}/pages", {
+                  owner,
+                  repo,
+                  ...body,
+                });
+                core.info(`POST pages ${res.status}`);
+                core.info(JSON.stringify(res.data));
+                return res.data;
+              } catch (error) {
+                const status = error.status;
+                const detail = JSON.stringify(error.response?.data || error.message);
+                core.warning(`POST pages failed ${status}: ${detail}`);
+                if (status !== 409 && status !== 422) throw error;
+                const res = await github.request("PUT /repos/{owner}/{repo}/pages", {
+                  owner,
+                  repo,
+                  ...body,
+                });
+                core.info(`PUT pages ${res.status}`);
+                core.info(JSON.stringify(res.data));
+                return res.data;
+              }
+            }
+
+            const site = await createOrUpdate();
+            core.info(`html_url=${site.html_url || ""} public=${site.public}`);
+
+            try {
+              const res = await github.request("PATCH /repos/{owner}/{repo}", {
+                owner,
+                repo,
+                homepage: "https://semalycs8888.github.io/mountain-echo/",
+              });
+              core.info(`homepage=${res.data.homepage}`);
+            } catch (error) {
+              core.warning(
+                `homepage update skipped: ${error.status} ${JSON.stringify(error.response?.data || error.message)}`
+              );
+            }
+
+            try {
+              await github.request("POST /repos/{owner}/{repo}/pages/builds", { owner, repo });
+              core.info("requested pages build");
+            } catch (error) {
+              core.warning(
+                `pages build request skipped: ${error.status} ${JSON.stringify(error.response?.data || error.message)}`
+              );
+            }
