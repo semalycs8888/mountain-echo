@@ -1150,11 +1150,17 @@
         edIndex.appendChild(opt);
       });
 
+      const PUBLIC_COS = {
+        region: "ap-beijing",
+        bucket: "image-1315962693",
+        prefix: "mountain-echo/"
+      };
+
       function fillOssForm() {
         const cfg = loadOssConfig();
-        ossRegion.value = cfg.region || "";
-        ossBucket.value = cfg.bucket || "";
-        ossPrefix.value = cfg.prefix || "mountain-echo/";
+        ossRegion.value = cfg.region || PUBLIC_COS.region;
+        ossBucket.value = cfg.bucket || PUBLIC_COS.bucket;
+        ossPrefix.value = cfg.prefix || PUBLIC_COS.prefix;
         ossCdn.value = cfg.cdn || "";
         ossAk.value = cfg.accessKeyId || "";
         ossSk.value = cfg.accessKeySecret || "";
@@ -1299,12 +1305,12 @@
       }
 
       function cosGalleryUrl(cfg) {
-        if (!cfg) return "";
-        const bucket = String(cfg.bucket || "").trim();
-        const region = normalizeCosRegion(cfg.region);
-        if (!bucket || !region) return "";
-        const prefix = normalizePrefix(cfg.prefix);
+        const src = cfg || {};
+        const bucket = String(src.bucket || "").trim() || PUBLIC_COS.bucket;
+        const region = normalizeCosRegion(src.region) || PUBLIC_COS.region;
+        const prefix = normalizePrefix(src.prefix);
         // gallery.json is the bucket object. CDN is only used when publish builds image URLs.
+        // Missing saved region/bucket fall back to this site's public-read bucket. Secrets are never used here.
         return publicUrl({
           bucket: bucket,
           region: region,
