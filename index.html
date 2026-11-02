@@ -834,7 +834,7 @@
           <input type="password" id="oss-sk" autocomplete="new-password" />
         </label>
       </details>
-      <p class="editor-hint" id="cloud-status">未连接云端。站点会优先读取同目录 gallery.json；点「保存到云端」会上传图片与 gallery.json。</p>
+      <p class="editor-hint" id="cloud-status">未连接云端。若本机已保存 Region 与 Bucket，刷新后会优先读取 COS 上的 gallery.json（公开读，不需要密钥）；否则读取同目录 gallery.json。</p>
       <div class="editor-actions">
         <button type="button" class="primary" id="ed-apply">应用到当前页</button>
         <button type="button" class="primary" id="ed-cloud">保存到云端</button>
@@ -1278,7 +1278,7 @@
 
       function publicUrl(cfg, objectKey) {
         if (cfg.cdn) return cfg.cdn + "/" + objectKey.replace(/^\//, "");
-        const region = cfg.region.replace(/^https?:\/\//, "").replace(/^cos\./, "");
+        const region = normalizeCosRegion(cfg.region);
         return "https://" + cfg.bucket + ".cos." + region + ".myqcloud.com/" + objectKey.replace(/^\//, "");
       }
 
@@ -1287,6 +1287,30 @@
         r = r.replace(/\.myqcloud\.com.*$/, "").replace(/^cos\./, "");
         if (r.indexOf("ap-") === 0 || r.indexOf("na-") === 0 || r.indexOf("eu-") === 0) return r;
         return r;
+      }
+
+      // Same prefix rules as publish: strip a leading slash, keep a trailing slash.
+      // An empty saved prefix matches the form default (mountain-echo/).
+      function normalizePrefix(prefix) {
+        let p = String(prefix == null ? "" : prefix).trim().replace(/^\/+/, "");
+        if (!p) p = "mountain-echo/";
+        if (!p.endsWith("/")) p += "/";
+        return p;
+      }
+
+      function cosGalleryUrl(cfg) {
+        if (!cfg) return "";
+        const bucket = String(cfg.bucket || "").trim();
+        const region = normalizeCosRegion(cfg.region);
+        if (!bucket || !region) return "";
+        const prefix = normalizePrefix(cfg.prefix);
+        // gallery.json is the bucket object. CDN is only used when publish builds image URLs.
+        return publicUrl({
+          bucket: bucket,
+          region: region,
+          cdn: "",
+          prefix: prefix
+        }, prefix + "gallery.json");
       }
 
       function createCosClient(cfg) {
@@ -1413,28 +1437,47 @@
         setCloudStatus("已恢复默认。");
       });
 
+      async function fetchGallery(url) {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const parsed = await res.json();
+        if (!Array.isArray(parsed) || !parsed.length) throw new Error("gallery.json 不是有效列表");
+        return mergeGallery(parsed);
+      }
+
       async function boot() {
         fillOssForm();
-        // Prefer cloud/local gallery.json, then local draft, then defaults
-        try {
-          const res = await fetch(GALLERY_URL + "?t=" + Date.now(), { cache: "no-store" });
-          if (res.ok) {
-            GALLERY = mergeGallery(await res.json());
-            cloudSource = "gallery.json";
-            setCloudStatus("已从 gallery.json 加载云端/站点内容。");
-          } else {
-            throw new Error("HTTP " + res.status);
+        const cfg = loadOssConfig();
+        const remoteUrl = cosGalleryUrl(cfg);
+        let loaded = false;
+        // Public read of COS gallery.json needs Region + Bucket only. Secrets stay local and are not sent.
+        if (remoteUrl) {
+          try {
+            GALLERY = await fetchGallery(remoteUrl);
+            cloudSource = "cos";
+            loaded = true;
+            setCloudStatus("已从 COS 加载内容：" + remoteUrl);
+          } catch (e) {
+            console.warn("COS gallery fetch failed", remoteUrl, e && e.message);
           }
-        } catch (e) {
-          const draft = loadLocalDraft();
-          if (draft) {
-            GALLERY = draft;
-            cloudSource = "localStorage";
-            setCloudStatus("未读到 gallery.json，已加载本机草稿。部署到腾讯云 COS 后即可云端同步。");
-          } else {
-            GALLERY = cloneGallery(DEFAULT_GALLERY);
-            cloudSource = "default";
-            setCloudStatus("使用默认内容。配置腾讯云 COS 后可保存到云端。");
+        }
+        if (!loaded) {
+          try {
+            GALLERY = await fetchGallery(GALLERY_URL);
+            cloudSource = "gallery.json";
+            loaded = true;
+            setCloudStatus("已从同目录 gallery.json 加载站点内容。");
+          } catch (e) {
+            const draft = loadLocalDraft();
+            if (draft) {
+              GALLERY = draft;
+              cloudSource = "localStorage";
+              setCloudStatus("未读到 gallery.json，已加载本机草稿。部署到腾讯云 COS 后即可云端同步。");
+            } else {
+              GALLERY = cloneGallery(DEFAULT_GALLERY);
+              cloudSource = "default";
+              setCloudStatus("使用默认内容。配置腾讯云 COS 后可保存到云端。");
+            }
           }
         }
         // Ensure 5 thumbs exist visually even if more/less — page has 5 buttons
