@@ -623,13 +623,15 @@
     }
     .editor textarea { min-height: 88px; }
     .editor textarea.verse { min-height: 110px; }
-    .editor-actions {
+    .editor-actions,
+    .slot-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-top: 0.25rem;
     }
     .editor-actions button,
+    .slot-actions button,
     .file-btn {
       border: 1px solid var(--border);
       background: #252525;
@@ -644,9 +646,15 @@
       border-color: rgba(196,165,116,0.45);
       color: #f3e6c8;
     }
-    .editor-actions button.danger {
+    .editor-actions button.danger,
+    .slot-actions button.danger {
       border-color: rgba(220,80,80,0.35);
       color: #f0b0b0;
+    }
+    .editor-actions button:disabled,
+    .slot-actions button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
     .file-btn { display: inline-flex; align-items: center; gap: 0.35rem; }
     .file-btn input { display: none; }
@@ -721,23 +729,7 @@
 
     <!-- Thumbnails -->
     <section class="thumbs-wrap" aria-label="缩略图">
-      <div class="thumbs" role="listbox" aria-label="选择图片" id="thumbs">
-        <button type="button" class="thumb active" role="option" aria-selected="true" data-index="0">
-          <img src="assets/hero.jpg" alt="" />
-        </button>
-        <button type="button" class="thumb" role="option" aria-selected="false" data-index="1">
-          <img src="assets/thumb-mist.jpg" alt="" />
-        </button>
-        <button type="button" class="thumb" role="option" aria-selected="false" data-index="2">
-          <img src="assets/thumb-coast.jpg" alt="" />
-        </button>
-        <button type="button" class="thumb" role="option" aria-selected="false" data-index="3">
-          <img src="assets/thumb-lake.jpg" alt="" />
-        </button>
-        <button type="button" class="thumb" role="option" aria-selected="false" data-index="4">
-          <img src="assets/thumb-road.jpg" alt="" />
-        </button>
-      </div>
+      <div class="thumbs" role="listbox" aria-label="选择图片" id="thumbs"></div>
     </section>
 
     <!-- Poem -->
@@ -788,6 +780,10 @@
       <label>当前条目
         <select id="ed-index"></select>
       </label>
+      <div class="slot-actions">
+        <button type="button" id="ed-add">添加</button>
+        <button type="button" class="danger" id="ed-delete">删除</button>
+      </div>
       <div style="display:flex;gap:0.75rem;align-items:center;">
         <img class="editor-preview" id="ed-preview" src="assets/hero.jpg" alt="" />
         <label class="file-btn">更换图片
@@ -869,14 +865,34 @@
         return JSON.parse(JSON.stringify(src));
       }
 
+      function blankTemplate() {
+        const base = cloneGallery([DEFAULT_GALLERY[0]])[0];
+        base.src = "assets/hero.jpg";
+        base.alt = "新条目";
+        base.poemTitle = "新条目";
+        base.author = "沈陌青";
+        base.verse = ["在此写下新的一句。"];
+        base.descTitle = "新的画面";
+        base.desc = "为这一帧写一段介绍。";
+        base.track = "未命名曲目";
+        return base;
+      }
+
+      function blankItem() {
+        const item = blankTemplate();
+        const n = GALLERY.length + 1;
+        item.poemTitle = "新条目 " + n;
+        item.alt = item.poemTitle;
+        item.track = "未命名曲目 " + n;
+        return item;
+      }
+
       function mergeGallery(parsed) {
         if (!Array.isArray(parsed) || !parsed.length) return cloneGallery(DEFAULT_GALLERY);
-        const n = Math.max(parsed.length, DEFAULT_GALLERY.length);
-        const out = [];
-        for (let i = 0; i < n; i++) {
-          out.push(Object.assign({}, DEFAULT_GALLERY[i % DEFAULT_GALLERY.length], parsed[i] || {}));
-        }
-        return out.slice(0, Math.max(5, parsed.length));
+        return parsed.map((item, i) => {
+          const fallback = DEFAULT_GALLERY[i] || blankTemplate();
+          return Object.assign({}, fallback, item || {});
+        });
       }
 
       function loadLocalDraft() {
@@ -928,7 +944,7 @@
       const descTitle = document.getElementById("desc-title");
       const descBody = document.getElementById("desc-body");
       const pillTrack = document.getElementById("pill-track");
-      const thumbs = document.querySelectorAll(".thumb");
+      const thumbsRoot = document.getElementById("thumbs");
       const cloudStatus = document.getElementById("cloud-status");
 
       function setCloudStatus(msg, isErr) {
@@ -944,12 +960,29 @@
           .replace(/>/g, "&gt;");
       }
 
-      function refreshThumbImages() {
-        thumbs.forEach((t) => {
-          const i = Number(t.dataset.index);
-          const img = t.querySelector("img");
-          if (img && GALLERY[i]) img.src = GALLERY[i].src;
-        });
+      function renderThumbs() {
+        const buttons = thumbsRoot.querySelectorAll(".thumb");
+        if (buttons.length !== GALLERY.length) {
+          thumbsRoot.replaceChildren();
+          GALLERY.forEach((item, i) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "thumb";
+            btn.setAttribute("role", "option");
+            btn.dataset.index = String(i);
+            const img = document.createElement("img");
+            img.alt = "";
+            img.src = item.src || "";
+            btn.appendChild(img);
+            thumbsRoot.appendChild(btn);
+          });
+        } else {
+          buttons.forEach((btn, i) => {
+            const img = btn.querySelector("img");
+            if (img && GALLERY[i]) img.src = GALLERY[i].src || "";
+            btn.dataset.index = String(i);
+          });
+        }
       }
 
       function applyItem(i, { restartAudio } = { restartAudio: true }) {
@@ -979,10 +1012,14 @@
         pillTrack.textContent = "🎵 " + item.track;
         counter.textContent = (i + 1) + " / " + GALLERY.length;
 
-        thumbs.forEach((t) => {
+        thumbsRoot.querySelectorAll(".thumb").forEach((t) => {
           const on = Number(t.dataset.index) === i;
           t.classList.toggle("active", on);
           t.setAttribute("aria-selected", on ? "true" : "false");
+          if (on) {
+            const left = t.offsetLeft - (thumbsRoot.clientWidth - t.clientWidth) / 2;
+            thumbsRoot.scrollTo({ left: Math.max(0, left) });
+          }
         });
 
         if (edIndex) {
@@ -996,8 +1033,10 @@
         }
       }
 
-      thumbs.forEach((btn) => {
-        btn.addEventListener("click", () => applyItem(Number(btn.dataset.index)));
+      thumbsRoot.addEventListener("click", (ev) => {
+        const btn = ev.target.closest(".thumb");
+        if (!btn || !thumbsRoot.contains(btn)) return;
+        applyItem(Number(btn.dataset.index));
       });
 
       /* Audio */
@@ -1122,6 +1161,8 @@
       const backdrop = document.getElementById("editor-backdrop");
       const editorClose = document.getElementById("editor-close");
       const edIndex = document.getElementById("ed-index");
+      const edAdd = document.getElementById("ed-add");
+      const edDelete = document.getElementById("ed-delete");
       const edPreview = document.getElementById("ed-preview");
       const edFile = document.getElementById("ed-file");
       const edPoemTitle = document.getElementById("ed-poem-title");
@@ -1143,12 +1184,22 @@
       const ossAk = document.getElementById("oss-ak");
       const ossSk = document.getElementById("oss-sk");
 
-      DEFAULT_GALLERY.forEach((item, i) => {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = (i + 1) + " · " + item.poemTitle;
-        edIndex.appendChild(opt);
-      });
+      function rebuildIndexOptions() {
+        const keep = edIndex.value === "" ? String(current) : edIndex.value;
+        edIndex.innerHTML = "";
+        GALLERY.forEach((item, i) => {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = (i + 1) + " · " + (item.poemTitle || "未命名");
+          edIndex.appendChild(opt);
+        });
+        if (!GALLERY.length) return;
+        const idx = Math.min(GALLERY.length - 1, Math.max(0, Number(keep) || 0));
+        edIndex.value = String(idx);
+        edDelete.disabled = GALLERY.length <= 1;
+      }
+
+      rebuildIndexOptions();
 
       const PUBLIC_COS = {
         region: "ap-beijing",
@@ -1198,8 +1249,10 @@
       }
 
       function syncEditorFields() {
-        const item = GALLERY[Number(edIndex.value) || current];
+        const item = GALLERY[current];
         if (!item) return;
+        rebuildIndexOptions();
+        edIndex.value = String(current);
         edPreview.src = item.src;
         edPoemTitle.value = item.poemTitle || "";
         edAuthor.value = item.author || "";
@@ -1207,9 +1260,28 @@
         edDescTitle.value = item.descTitle || "";
         edDesc.value = item.desc || "";
         edTrack.value = item.track || "";
-        Array.from(edIndex.options).forEach((opt, i) => {
-          if (GALLERY[i]) opt.textContent = (i + 1) + " · " + (GALLERY[i].poemTitle || DEFAULT_GALLERY[i % DEFAULT_GALLERY.length].poemTitle);
-        });
+      }
+
+      function addItem() {
+        const iCur = Number(edIndex.value);
+        if (GALLERY[iCur]) readEditorIntoGallery(iCur);
+        GALLERY.push(blankItem());
+        saveLocalDraft();
+        renderThumbs();
+        applyItem(GALLERY.length - 1, { restartAudio: false });
+        setCloudStatus("已添加第 " + GALLERY.length + " 条。图片、诗文和曲名都在这一条里，云端需再点「保存到云端」。");
+      }
+
+      function deleteItem() {
+        if (GALLERY.length <= 1) return;
+        const i = Number(edIndex.value);
+        const title = (GALLERY[i] && GALLERY[i].poemTitle) || ("第 " + (i + 1) + " 条");
+        if (!confirm("删除「" + title + "」？不会自动删除已经上传到云端的文件。")) return;
+        GALLERY.splice(i, 1);
+        saveLocalDraft();
+        renderThumbs();
+        applyItem(Math.min(i, GALLERY.length - 1), { restartAudio: false });
+        setCloudStatus("已删除该条目。云端需再点「保存到云端」才会同步。");
       }
 
       function readEditorIntoGallery(i) {
@@ -1230,6 +1302,8 @@
       edIndex.addEventListener("change", () => {
         applyItem(Number(edIndex.value));
       });
+      edAdd.addEventListener("click", addItem);
+      edDelete.addEventListener("click", deleteItem);
 
       edFile.addEventListener("change", () => {
         const file = edFile.files && edFile.files[0];
@@ -1243,7 +1317,7 @@
           const i = Number(edIndex.value);
           GALLERY[i].src = reader.result;
           edPreview.src = reader.result;
-          refreshThumbImages();
+          renderThumbs();
           if (i === current) {
             heroImg.src = reader.result;
             vinylImg.src = reader.result;
@@ -1259,7 +1333,7 @@
         const i = Number(edIndex.value);
         readEditorIntoGallery(i);
         saveLocalDraft();
-        refreshThumbImages();
+        renderThumbs();
         applyItem(i);
         setCloudStatus("已应用到页面，并写入本机草稿。云端需再点「保存到云端」。");
       });
@@ -1375,7 +1449,7 @@
 
           GALLERY = published;
           saveLocalDraft();
-          refreshThumbImages();
+          renderThumbs();
           applyItem(current, { restartAudio: false });
           const url = publicUrl(cfg, galleryKey);
           setCloudStatus("已保存到云端：" + url);
@@ -1422,7 +1496,7 @@
           try {
             GALLERY = mergeGallery(JSON.parse(reader.result));
             saveLocalDraft();
-            refreshThumbImages();
+            renderThumbs();
             applyItem(current);
             setCloudStatus("已从 JSON 导入到本机草稿。");
             alert("导入成功");
@@ -1438,7 +1512,7 @@
         if (!confirm("恢复默认图文？本机草稿会清除（云端文件不会自动删）。")) return;
         GALLERY = cloneGallery(DEFAULT_GALLERY);
         localStorage.removeItem(STORAGE_KEY);
-        refreshThumbImages();
+        renderThumbs();
         applyItem(0);
         setCloudStatus("已恢复默认。");
       });
@@ -1486,13 +1560,8 @@
             }
           }
         }
-        // Ensure 5 thumbs exist visually even if more/less — page has 5 buttons
-        while (GALLERY.length < 5) GALLERY.push(cloneGallery(DEFAULT_GALLERY)[GALLERY.length % 5]);
-        if (GALLERY.length > 5) {
-          // keep first 5 for current UI thumbs
-          GALLERY = GALLERY.slice(0, 5);
-        }
-        refreshThumbImages();
+        renderThumbs();
+        rebuildIndexOptions();
         applyItem(0, { restartAudio: false });
       }
 
