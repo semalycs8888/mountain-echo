@@ -383,14 +383,19 @@
     .meta-info {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
+      gap: 0.5rem;
       align-items: center;
     }
 
-    .meta-info span:not(:last-child)::after {
-      content: "|";
-      margin-left: 0.5rem;
-      opacity: 0.4;
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.28rem 0.6rem;
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: clamp(0.68rem, 1.7vw, 0.75rem);
+      color: #cfcfcf;
     }
 
     .pills {
@@ -1120,6 +1125,7 @@
         metaTags.replaceChildren();
         tags.forEach(function (tag) {
           const span = document.createElement("span");
+          span.className = "tag-chip";
           span.textContent = tag;
           metaTags.appendChild(span);
         });
