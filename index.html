@@ -103,9 +103,35 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      cursor: zoom-in;
       transition: opacity 0.35s ease;
     }
     .hero-photo img.fading { opacity: 0.35; }
+
+    .hero-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      background: rgba(0, 0, 0, 0.94);
+      cursor: zoom-out;
+    }
+    .hero-overlay[hidden] { display: none; }
+    .hero-overlay img {
+      max-width: 100vw;
+      max-height: 100vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      cursor: zoom-out;
+    }
+    body.hero-lock {
+      overflow: hidden;
+      touch-action: none;
+    }
 
     /* Position wrapper: vinyl CENTER locked to photo's right edge → always half covered */
     .vinyl-wrap {
@@ -801,6 +827,9 @@
     </section>
   </main>
 
+  <div class="hero-overlay" id="hero-overlay" hidden role="dialog" aria-modal="true" aria-label="查看大图">
+    <img id="hero-overlay-img" alt="" />
+  </div>
 
   <button type="button" class="edit-toggle" id="edit-toggle">编辑内容</button>
   <div class="edit-gate" id="edit-gate" hidden>
@@ -979,9 +1008,11 @@
       function saveLocalDraft() {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(GALLERY));
+          return true;
         } catch (e) {
           console.warn(e);
-          setCloudStatus("本机草稿保存失败：存储可能已满。", true);
+          setCloudStatus("本机草稿保存失败：存储可能已满。请立即点「保存到云端」，否则刷新会丢失未写入的条目。", true);
+          return false;
         }
       }
 
@@ -1004,8 +1035,29 @@
       let TEMPO = GALLERY[0].tempo;
       let BEAT = 60 / TEMPO;
       let cloudSource = "default";
+      let cloudItemCount = null;
 
       const heroImg = document.getElementById("hero-img");
+      const heroOverlay = document.getElementById("hero-overlay");
+      const heroOverlayImg = document.getElementById("hero-overlay-img");
+
+      function openHeroOverlay() {
+        heroOverlayImg.src = heroImg.currentSrc || heroImg.src;
+        heroOverlayImg.alt = heroImg.alt || "";
+        heroOverlay.hidden = false;
+        document.body.classList.add("hero-lock");
+      }
+
+      function closeHeroOverlay() {
+        heroOverlay.hidden = true;
+        document.body.classList.remove("hero-lock");
+      }
+
+      heroImg.addEventListener("click", openHeroOverlay);
+      heroOverlay.addEventListener("click", closeHeroOverlay);
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape" && !heroOverlay.hidden) closeHeroOverlay();
+      });
       const vinylImg = document.getElementById("vinyl-img");
       const counter = document.getElementById("counter");
       const chipTrack = document.getElementById("chip-track");
@@ -1337,10 +1389,17 @@
         const iCur = Number(edIndex.value);
         if (GALLERY[iCur]) readEditorIntoGallery(iCur);
         GALLERY.push(blankItem());
-        saveLocalDraft();
+        const draftSaved = saveLocalDraft();
         renderThumbs();
         applyItem(GALLERY.length - 1, { restartAudio: false });
-        setCloudStatus("已添加第 " + GALLERY.length + " 条。图片、诗文和曲名都在这一条里，云端需再点「保存到云端」。");
+        if (!draftSaved) return;
+        let msg = "已添加第 " + GALLERY.length + " 条。图片、诗文和曲名都在这一条里。";
+        if (cloudItemCount != null && GALLERY.length > cloudItemCount) {
+          msg += "云端仍是 " + cloudItemCount + " 条，本机已有 " + GALLERY.length + " 条。请立即点「保存到云端」，否则其他设备看不到新增条目。";
+        } else {
+          msg += "请立即点「保存到云端」。";
+        }
+        setCloudStatus(msg, cloudItemCount != null && GALLERY.length > cloudItemCount);
       }
 
       function deleteItem() {
@@ -1684,16 +1743,22 @@
           }
 
           const galleryKey = prefix + "gallery.json";
-          const body = new Blob([JSON.stringify(published, null, 2)], { type: "application/json;charset=utf-8" });
+          const payload = JSON.stringify(published, null, 2);
+          const savedCount = JSON.parse(payload).length;
+          if (savedCount !== published.length || !savedCount) {
+            throw new Error("准备写入的条目数量不一致");
+          }
+          const body = new Blob([payload], { type: "application/json;charset=utf-8" });
           await putCosObject(cos, cfg, galleryKey, body, "application/json;charset=utf-8");
 
           GALLERY = published;
+          cloudItemCount = savedCount;
           saveLocalDraft();
           renderThumbs();
           applyItem(current, { restartAudio: false });
           const url = publicUrl(cfg, galleryKey);
-          setCloudStatus("已保存到云端：" + url);
-          alert("已保存到云端。\n" + url + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。");
+          setCloudStatus("已保存 " + savedCount + " 条到云端：" + url);
+          alert("已保存 " + savedCount + " 条到云端。\n" + url + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。");
         } catch (e) {
           console.error(e);
           const msg = (e && (e.message || e.error || e.Message)) || String(e);
@@ -1771,13 +1836,14 @@
         const cfg = loadOssConfig();
         const remoteUrl = cosGalleryUrl(cfg);
         let loaded = false;
+        let loadedLabel = "";
         // Public read of COS gallery.json needs Region + Bucket only. Secrets stay local and are not sent.
         if (remoteUrl) {
           try {
             GALLERY = await fetchGallery(remoteUrl);
             cloudSource = "cos";
             loaded = true;
-            setCloudStatus("已从 COS 加载内容：" + remoteUrl);
+            loadedLabel = "已从 COS 加载内容：" + remoteUrl;
           } catch (e) {
             console.warn("COS gallery fetch failed", remoteUrl, e && e.message);
           }
@@ -1787,7 +1853,7 @@
             GALLERY = await fetchGallery(GALLERY_URL);
             cloudSource = "gallery.json";
             loaded = true;
-            setCloudStatus("已从同目录 gallery.json 加载站点内容。");
+            loadedLabel = "已从同目录 gallery.json 加载站点内容。";
           } catch (e) {
             const draft = loadLocalDraft();
             if (draft) {
@@ -1799,6 +1865,19 @@
               cloudSource = "default";
               setCloudStatus("使用默认内容。配置腾讯云 COS 后可保存到云端。");
             }
+          }
+        }
+        if (loaded) {
+          const remoteCount = GALLERY.length;
+          const draft = loadLocalDraft();
+          if (draft && draft.length > remoteCount) {
+            cloudItemCount = remoteCount;
+            GALLERY = draft;
+            cloudSource = "localStorage";
+            setCloudStatus("本机有未同步的更多条目（本机 " + draft.length + " 条，云端 " + remoteCount + " 条），请立即点「保存到云端」。", true);
+          } else {
+            cloudItemCount = remoteCount;
+            setCloudStatus(loadedLabel);
           }
         }
         renderThumbs();
