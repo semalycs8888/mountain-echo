@@ -550,6 +550,36 @@
     }
     .edit-toggle:hover { border-color: rgba(255,255,255,0.25); }
 
+    .edit-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.55);
+    }
+    .edit-gate[hidden] { display: none; }
+    .edit-gate-card {
+      width: min(100%, 360px);
+      background: #171717;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.15rem 1rem;
+      box-shadow: var(--shadow);
+    }
+    .edit-gate-card h2 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.15rem;
+      margin: 0 0 0.4rem;
+    }
+    .edit-gate-error {
+      color: #f0b0b0;
+      font-size: 0.78rem;
+      margin: 0.45rem 0 0;
+    }
+
     .editor {
       position: fixed;
       z-index: 70;
@@ -770,6 +800,20 @@
 
 
   <button type="button" class="edit-toggle" id="edit-toggle">编辑内容</button>
+  <div class="edit-gate" id="edit-gate" hidden>
+    <form class="edit-gate-card" id="edit-gate-form">
+      <h2>编辑密码</h2>
+      <p class="editor-hint">画廊仍可公开浏览。密码只是避免误开编辑面板，不是严格的访问控制。</p>
+      <label>密码
+        <input type="password" id="edit-gate-password" autocomplete="current-password" />
+      </label>
+      <p class="edit-gate-error" id="edit-gate-error" hidden>密码不正确</p>
+      <div class="slot-actions">
+        <button type="submit">打开</button>
+        <button type="button" id="edit-gate-cancel">取消</button>
+      </div>
+    </form>
+  </div>
   <div class="editor-backdrop" id="editor-backdrop" hidden></div>
   <aside class="editor" id="editor" aria-hidden="true" aria-label="自定义内容">
     <div class="editor-top">
@@ -858,6 +902,9 @@
       const STORAGE_KEY = "mountain-echo-gallery-v1";
       const OSS_KEY = "mountain-echo-cos-v1";
       const GALLERY_URL = "gallery.json";
+      // default password: painter — change by replacing this hash (e.g. sha256 of your new password).
+      const EDIT_PASSWORD_SHA256 = "7175d41e052114d7e66372dbe3889f00cc8dbc9f2f05a9bf10dc98b9bc8029f5";
+      const EDIT_UNLOCK_KEY = "mountain-echo-edit-unlocked";
 
       const DEFAULT_GALLERY = [{"src": "assets/hero.jpg", "alt": "雾锁山峦，晨光微露", "poemTitle": "山回未尽", "author": "沈陌青", "verse": ["峰峦隐入薄雾里，", "独行一路无归期。", "弦声远过空谷外，", "夜色漫上旧行衣。"], "descTitle": "雾中回响", "desc": "山脊在云气里时隐时现，像一段未写完的蓝调。风从垭口穿过，带走脚步的回声，也留下缓慢、低沉的弦音——不是欢愉，是赶路人在雾里对自己轻声哼唱。", "track": "雾里弦声", "tempo": 72, "bass": [110, 110, 110, 110, 146.83, 146.83, 146.83, 146.83, 164.81, 164.81, 146.83, 110], "melody": [220, 261.63, 293.66, 261.63, 293.66, 329.63, 293.66, 246.94, 329.63, 293.66, 261.63, 220]}, {"src": "assets/thumb-mist.jpg", "alt": "云雾漫过远峰", "poemTitle": "云隙一线", "author": "沈陌青", "verse": ["远峰沉入灰蓝雾，", "一线金光裂云腹。", "松涛低作慢板声，", "心事轻如未落露。"], "descTitle": "蓝雾慢板", "desc": "黎明前最冷的一刻，云海把群山托成孤岛。那道微弱的天光像布鲁斯里突然亮起的属七和弦——短暂、克制，却足以让整段寂静重新呼吸。", "track": "云隙慢拨", "tempo": 66, "bass": [98, 98, 98, 98, 130.81, 130.81, 130.81, 130.81, 116.54, 116.54, 130.81, 98], "melody": [196, 233.08, 261.63, 233.08, 261.63, 293.66, 261.63, 220, 293.66, 261.63, 233.08, 196]}, {"src": "assets/thumb-coast.jpg", "alt": "海岸线与暮色", "poemTitle": "潮声未歇", "author": "沈陌青", "verse": ["断崖咬住灰白浪，", "风把盐味送进窗。", "吉他弦上起潮汛，", "一步一拍向远航。"], "descTitle": "岸边蓝调", "desc": "海面翻着冷绿的白沫，悬崖像一排沉默的低音。浪打礁石的节奏天然接近摇摆布鲁斯——不规则、却让人想跟着点头，把一天的疲惫冲回海里。", "track": "礁石低吟", "tempo": 78, "bass": [82.41, 82.41, 82.41, 82.41, 110, 110, 110, 110, 123.47, 123.47, 110, 82.41], "melody": [164.81, 196, 220, 196, 220, 246.94, 220, 185, 246.94, 220, 196, 164.81]}, {"src": "assets/thumb-lake.jpg", "alt": "静湖倒映山影", "poemTitle": "镜中山色", "author": "沈陌青", "verse": ["一湖墨色收千峰，", "倒影比山更从容。", "弦停之处水仍响，", "紫霞落进夜的胸。"], "descTitle": "湖心夜曲", "desc": "对称的倒影把世界对折成一张黑胶的两面。黄昏最后的紫红像唱针落下的一刻——安静、精确，随后所有声响都变得又远又近，像在水下听琴。", "track": "镜湖夜韵", "tempo": 60, "bass": [123.47, 123.47, 123.47, 123.47, 164.81, 164.81, 164.81, 164.81, 146.83, 146.83, 164.81, 123.47], "melody": [246.94, 293.66, 329.63, 293.66, 329.63, 369.99, 329.63, 277.18, 369.99, 329.63, 293.66, 246.94]}, {"src": "assets/thumb-road.jpg", "alt": "长路通向雾中", "poemTitle": "弯道无尽", "author": "沈陌青", "verse": ["秋叶铺成旧和弦，", "公路拐进雾中间。", "后视镜里山渐远，", "前灯只照三尺前。"], "descTitle": "雾路独行", "desc": "湿润的柏油路像一条被拉长的低音线，秋色与冷雾交错。开进云里时，引擎的嗡鸣与远山的寂静叠在一起——适合一首带点公路感的慢速蓝调，让人愿意把油门再松一点。", "track": "弯道回声", "tempo": 70, "bass": [103.83, 103.83, 103.83, 103.83, 138.59, 138.59, 138.59, 138.59, 155.56, 155.56, 138.59, 103.83], "melody": [207.65, 246.94, 277.18, 246.94, 277.18, 311.13, 277.18, 233.08, 311.13, 277.18, 246.94, 207.65]}];
 
@@ -1295,7 +1342,62 @@
         GALLERY[i].alt = GALLERY[i].poemTitle;
       }
 
-      editToggle.addEventListener("click", openEditor);
+      const editGate = document.getElementById("edit-gate");
+      const editGateForm = document.getElementById("edit-gate-form");
+      const editGatePassword = document.getElementById("edit-gate-password");
+      const editGateError = document.getElementById("edit-gate-error");
+      const editGateCancel = document.getElementById("edit-gate-cancel");
+
+      function editUnlocked() {
+        try { return sessionStorage.getItem(EDIT_UNLOCK_KEY) === "1"; }
+        catch (e) { return false; }
+      }
+
+      function markEditUnlocked() {
+        try { sessionStorage.setItem(EDIT_UNLOCK_KEY, "1"); }
+        catch (e) {}
+      }
+
+      async function sha256Hex(text) {
+        const bytes = new TextEncoder().encode(text);
+        const buf = await crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(buf)).map(function (b) {
+          return ("0" + b.toString(16)).slice(-2);
+        }).join("");
+      }
+
+      function showEditGate() {
+        editGateError.hidden = true;
+        editGatePassword.value = "";
+        editGate.hidden = false;
+        editGatePassword.focus();
+      }
+
+      function hideEditGate() {
+        editGate.hidden = true;
+        editGateError.hidden = true;
+        editGatePassword.value = "";
+      }
+
+      function requestEdit() {
+        if (editUnlocked()) openEditor();
+        else showEditGate();
+      }
+
+      editToggle.addEventListener("click", requestEdit);
+      editGateCancel.addEventListener("click", hideEditGate);
+      editGateForm.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        const hash = await sha256Hex(editGatePassword.value);
+        if (hash === EDIT_PASSWORD_SHA256) {
+          markEditUnlocked();
+          hideEditGate();
+          openEditor();
+          return;
+        }
+        editGateError.hidden = false;
+        editGatePassword.select();
+      });
       editorClose.addEventListener("click", closeEditor);
       backdrop.addEventListener("click", closeEditor);
 
