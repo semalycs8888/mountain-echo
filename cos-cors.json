@@ -1,0 +1,7 @@
+{
+  "AllowedOrigins": ["https://semalycs8888.github.io", "http://localhost:*"],
+  "AllowedMethods": ["GET", "PUT", "POST", "HEAD", "DELETE"],
+  "AllowedHeaders": ["*"],
+  "ExposeHeaders": ["ETag", "Content-Length", "x-cos-request-id"],
+  "MaxAgeSeconds": 3600
+}

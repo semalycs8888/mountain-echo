@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#121212" />
+  <title>山回 · 雾里弦声</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --card-elevated: #252525;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0f0;
+      --muted: #9a9a9a;
+      --accent: #c4a574;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --max: 1120px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Noto Sans SC", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      line-height: 1.6;
+      overflow-x: hidden;
+      padding:
+        max(1rem, var(--safe-top))
+        max(1rem, var(--safe-right))
+        max(1.5rem, var(--safe-bottom))
+        max(1rem, var(--safe-left));
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(80, 70, 50, 0.18), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(40, 50, 60, 0.12), transparent);
+    }
+
+    .wrap {
+      width: min(100%, var(--max));
+      margin-inline: auto;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(1.25rem, 3vw, 2rem);
+    }
+
+    /* —— HERO —— */
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      align-items: center;
+      justify-items: stretch;
+      min-height: 0;
+      overflow: hidden; /* keep vinyl inside card, never clipped by page */
+      padding: clamp(1.1rem, 3.5vw, 2rem) clamp(0.85rem, 3vw, 1.5rem) clamp(1.35rem, 3.5vw, 2rem);
+      background:
+        radial-gradient(ellipse 70% 80% at 78% 48%, rgba(255,255,255,0.05), transparent 55%),
+        linear-gradient(160deg, #2a2a2a 0%, #1a1a1a 45%, #151515 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: calc(var(--radius) + 4px);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .hero-stage {
+      --pw: 68%;           /* photo width of stage */
+      --vw: 0.92;          /* vinyl diameter as fraction of photo width */
+      position: relative;
+      width: min(100%, 780px);
+      margin-inline: auto;
+      z-index: 1;
+      /* height follows in-flow square photo */
+    }
+
+    .hero-photo {
+      position: relative;
+      z-index: 2;
+      width: var(--pw);
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.35s ease;
+    }
+    .hero-photo img.fading { opacity: 0.35; }
+
+    /* Position wrapper: vinyl CENTER locked to photo's right edge → always half covered */
+    .vinyl-wrap {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: var(--pw);
+      width: calc(var(--pw) * var(--vw));
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .vinyl {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.16), transparent 42%),
+        radial-gradient(circle at center, #2a2a2a 0 14%, #161616 28%, #0f0f0f 40%, #1c1c1c 55%, #121212 72%, #0c0c0c 100%);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 0 32px rgba(255, 255, 255, 0.07),
+        0 14px 40px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.06),
+        inset 0 0 24px rgba(255, 255, 255, 0.05);
+      animation: spin 10s linear infinite;
+      will-change: transform;
+    }
+
+    .vinyl::before {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(
+          circle at center,
+          transparent 0,
+          transparent 1.5px,
+          rgba(255, 255, 255, 0.1) 1.5px,
+          rgba(255, 255, 255, 0.1) 2.5px
+        );
+      -webkit-mask-image: radial-gradient(circle at center, transparent 28%, #000 32%, #000 92%, transparent 96%);
+      mask-image: radial-gradient(circle at center, transparent 28%, #000 32%, #000 92%, transparent 96%);
+      pointer-events: none;
+      opacity: 0.95;
+    }
+
+    .vinyl::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 28%, transparent 62%, rgba(255,255,255,0.07) 100%);
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+    }
+
+    .vinyl-label {
+      position: absolute;
+      inset: 30%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(220, 200, 160, 0.55);
+      box-shadow: 0 0 0 5px #1a1a1a, 0 0 0 6px rgba(255,255,255,0.12), inset 0 0 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .vinyl-label img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .vinyl-hole {
+      position: absolute;
+      inset: 46.5%;
+      border-radius: 50%;
+      background: #0a0a0a;
+      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.8);
+      z-index: 2;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .vinyl { animation: none; }
+    }
+
+    .chip {
+      position: absolute;
+      z-index: 4;
+      top: 0.75rem;
+      left: calc(var(--pw) - 0.75rem);
+      transform: translateX(-100%);
+      right: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(18, 18, 18, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: clamp(0.7rem, 2vw, 0.8rem);
+      color: var(--text);
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .chip svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .counter {
+      position: absolute;
+      z-index: 4;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      background: rgba(18, 18, 18, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: clamp(0.7rem, 2vw, 0.8rem);
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* —— THUMBS —— */
+    .thumbs-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .thumbs {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.75rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding: 0.35rem 0.5rem 0.65rem;
+      margin-inline: auto;
+      width: max-content;
+      max-width: 100%;
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #555 transparent;
+    }
+
+    .thumbs::-webkit-scrollbar {
+      height: 5px;
+    }
+    .thumbs::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .thumbs::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 999px;
+    }
+
+    .thumb {
+      flex: 0 0 auto;
+      flex-shrink: 0;
+      width: clamp(72px, 18vw, 96px);
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      scroll-snap-align: center;
+      background: var(--card);
+      padding: 0;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .thumb:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .thumb:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .thumb.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* —— POEM —— */
+    .poem-card {
+      background: linear-gradient(160deg, #222 0%, #1a1a1a 50%, #1e1e1e 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(1.5rem, 4vw, 2.5rem);
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .poem-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(196, 165, 116, 0.06), transparent 55%);
+      pointer-events: none;
+    }
+
+    .poem-title {
+      font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: #f5f0e8;
+      margin-bottom: 0.35rem;
+      position: relative;
+    }
+
+    .poem-author {
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      color: var(--muted);
+      margin-bottom: clamp(1rem, 3vw, 1.5rem);
+      letter-spacing: 0.08em;
+    }
+
+    .poem-verse {
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      color: #d8d4cc;
+      line-height: 2;
+      letter-spacing: 0.06em;
+      position: relative;
+    }
+
+    .poem-verse p { margin: 0; }
+
+    /* —— META —— */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      color: var(--muted);
+    }
+
+    .meta-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .meta-info span:not(:last-child)::after {
+      content: "|";
+      margin-left: 0.5rem;
+      opacity: 0.4;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.7rem;
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: clamp(0.7rem, 1.8vw, 0.78rem);
+      color: #cfcfcf;
+    }
+
+    /* —— DESC —— */
+    .desc-card {
+      background: linear-gradient(145deg, #1e1e1e, #191919);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(1.25rem, 3.5vw, 2rem);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .desc-card h2 {
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #eee;
+      letter-spacing: 0.04em;
+    }
+
+    .desc-card p {
+      font-size: clamp(0.88rem, 2.2vw, 0.98rem);
+      color: var(--muted);
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+    }
+
+    /* —— AUDIO FAB —— */
+    .audio-fab {
+      position: fixed;
+      z-index: 50;
+      bottom: max(1.25rem, var(--safe-bottom));
+      right: max(1.25rem, var(--safe-right));
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.1rem;
+      background: rgba(30, 30, 30, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(196, 165, 116, 0.35);
+      border-radius: 999px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .audio-fab:hover {
+      background: rgba(40, 40, 40, 0.95);
+      border-color: rgba(196, 165, 116, 0.55);
+    }
+
+    .audio-fab:active { transform: scale(0.97); }
+
+    .audio-fab:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .audio-fab .icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .audio-fab[aria-pressed="true"] {
+      border-color: rgba(196, 165, 116, 0.7);
+      background: rgba(45, 40, 32, 0.95);
+    }
+
+    /* —— BREAKPOINTS —— */
+    /* Responsive: keep half-cover math; only nudge photo share */
+    @media (min-width: 480px) {
+      .hero-stage { --pw: 66%; --vw: 0.94; }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding:
+          max(1.5rem, var(--safe-top))
+          max(1.5rem, var(--safe-right))
+          max(2rem, var(--safe-bottom))
+          max(1.5rem, var(--safe-left));
+      }
+      .hero-stage { --pw: 64%; --vw: 0.95; max-width: 820px; }
+      .thumb { width: 88px; }
+    }
+
+    @media (min-width: 1024px) {
+      .hero {
+        display: block;
+        padding: 2rem clamp(1.5rem, 4vw, 2.75rem) 2.5rem;
+        overflow: hidden;
+      }
+      .hero-stage { --pw: 62%; --vw: 0.96; max-width: 880px; }
+      .chip {
+        top: 1rem;
+        left: calc(var(--pw) - 1rem);
+        transform: translateX(-100%);
+        right: auto;
+      }
+      .counter { top: 1rem; left: 1rem; }
+    }
+
+    @media (min-width: 1280px) {
+      :root { --max: 1200px; }
+      .hero-stage { --pw: 60%; --vw: 0.98; max-width: 940px; }
+    }
+
+    @media (max-width: 379px) {
+      .hero-stage { --pw: 70%; --vw: 0.9; }
+    }
+
+
+    /* —— Editor —— */
+    .edit-toggle {
+      position: fixed;
+      top: max(1rem, var(--safe-top));
+      left: max(1rem, var(--safe-left));
+      z-index: 60;
+      border: 1px solid var(--border);
+      background: rgba(30,30,30,0.9);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font: 500 0.8rem/1 "Noto Sans SC", sans-serif;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+    .edit-toggle:hover { border-color: rgba(255,255,255,0.25); }
+
+    .editor {
+      position: fixed;
+      z-index: 70;
+      top: 0;
+      right: 0;
+      width: min(100%, 420px);
+      height: 100%;
+      background: #171717;
+      border-left: 1px solid var(--border);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.45);
+      transform: translateX(105%);
+      transition: transform 0.28s ease;
+      display: flex;
+      flex-direction: column;
+      padding:
+        max(1rem, var(--safe-top))
+        max(1rem, var(--safe-right))
+        max(1rem, var(--safe-bottom))
+        1rem;
+      overflow: hidden;
+    }
+    .editor.open { transform: translateX(0); }
+    .editor h2 {
+      font-size: 1.05rem;
+      margin: 0 0 0.75rem;
+      font-family: "Noto Serif SC", serif;
+    }
+    .editor-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .editor-close {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+    }
+    .editor-body {
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      padding-right: 0.25rem;
+      padding-bottom: 1rem;
+    }
+    .editor label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .editor input[type="text"],
+    .editor textarea,
+    .editor select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #101010;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      font: 400 0.9rem/1.45 "Noto Sans SC", sans-serif;
+      resize: vertical;
+    }
+    .editor textarea { min-height: 88px; }
+    .editor textarea.verse { min-height: 110px; }
+    .editor-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .editor-actions button,
+    .file-btn {
+      border: 1px solid var(--border);
+      background: #252525;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 0.45rem 0.85rem;
+      font: 500 0.78rem/1 "Noto Sans SC", sans-serif;
+      cursor: pointer;
+    }
+    .editor-actions button.primary {
+      background: linear-gradient(135deg, #3a3428, #2a241c);
+      border-color: rgba(196,165,116,0.45);
+      color: #f3e6c8;
+    }
+    .editor-actions button.danger {
+      border-color: rgba(220,80,80,0.35);
+      color: #f0b0b0;
+    }
+    .file-btn { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .file-btn input { display: none; }
+    .editor-hint {
+      font-size: 0.72rem;
+      color: #777;
+      line-height: 1.4;
+    }
+    .editor-preview {
+      width: 96px;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .editor-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 65;
+      background: rgba(0,0,0,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .oss-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.65rem 0.75rem;
+      background: #121212;
+    }
+    .oss-box summary {
+      cursor: pointer;
+      color: var(--text);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    .oss-box label { margin-top: 0.55rem; }
+    #cloud-status { min-height: 2.4em; }
+
+    .editor-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- Hero -->
+    <section class="hero" aria-label="主图画廊">
+      <div class="hero-stage">
+        <div class="counter" id="counter" aria-live="polite">1 / 5</div>
+        <div class="chip" title="当前曲目">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+          </svg>
+          <span id="chip-track">雾里弦声</span>
+        </div>
+        <div class="hero-photo">
+          <img id="hero-img" src="assets/hero.jpg" alt="雾锁山峦，晨光微露" width="800" height="800" />
+        </div>
+        <div class="vinyl-wrap" aria-hidden="true">
+          <div class="vinyl">
+            <div class="vinyl-label">
+              <img id="vinyl-img" src="assets/vinyl-label.jpg" alt="" />
+            </div>
+            <div class="vinyl-hole"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Thumbnails -->
+    <section class="thumbs-wrap" aria-label="缩略图">
+      <div class="thumbs" role="listbox" aria-label="选择图片" id="thumbs">
+        <button type="button" class="thumb active" role="option" aria-selected="true" data-index="0">
+          <img src="assets/hero.jpg" alt="" />
+        </button>
+        <button type="button" class="thumb" role="option" aria-selected="false" data-index="1">
+          <img src="assets/thumb-mist.jpg" alt="" />
+        </button>
+        <button type="button" class="thumb" role="option" aria-selected="false" data-index="2">
+          <img src="assets/thumb-coast.jpg" alt="" />
+        </button>
+        <button type="button" class="thumb" role="option" aria-selected="false" data-index="3">
+          <img src="assets/thumb-lake.jpg" alt="" />
+        </button>
+        <button type="button" class="thumb" role="option" aria-selected="false" data-index="4">
+          <img src="assets/thumb-road.jpg" alt="" />
+        </button>
+      </div>
+    </section>
+
+    <!-- Poem -->
+    <article class="poem-card">
+      <h1 class="poem-title" id="poem-title">山回未尽</h1>
+      <p class="poem-author" id="poem-author">—— 沈陌青</p>
+      <div class="poem-verse" id="poem-verse">
+        <p>峰峦隐入薄雾里，</p>
+        <p>独行一路无归期。</p>
+        <p>弦声远过空谷外，</p>
+        <p>夜色漫上旧行衣。</p>
+      </div>
+    </article>
+
+    <!-- Meta -->
+    <div class="meta-row">
+      <div class="meta-info">
+        <span>摄影</span>
+        <span>正方形</span>
+        <span>风景 · 蓝调</span>
+      </div>
+      <div class="pills">
+        <span class="pill">2048 × 2048</span>
+        <span class="pill" id="pill-track">🎵 雾里弦声</span>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <section class="desc-card">
+      <h2 id="desc-title">雾中回响</h2>
+      <p id="desc-body">
+        山脊在云气里时隐时现，像一段未写完的蓝调。风从垭口穿过，带走脚步的回声，
+        也留下缓慢、低沉的弦音——不是欢愉，是赶路人在雾里对自己轻声哼唱。
+        这组画面捕捉的是那种安静而辽阔的孤寂：峰、水、岸、路，都在等待下一次日出。
+      </p>
+    </section>
+  </main>
+
+
+  <button type="button" class="edit-toggle" id="edit-toggle">编辑内容</button>
+  <div class="editor-backdrop" id="editor-backdrop" hidden></div>
+  <aside class="editor" id="editor" aria-hidden="true" aria-label="自定义内容">
+    <div class="editor-top">
+      <h2>自定义图文</h2>
+      <button type="button" class="editor-close" id="editor-close" aria-label="关闭">×</button>
+    </div>
+    <div class="editor-body">
+      <label>当前条目
+        <select id="ed-index"></select>
+      </label>
+      <div style="display:flex;gap:0.75rem;align-items:center;">
+        <img class="editor-preview" id="ed-preview" src="assets/hero.jpg" alt="" />
+        <label class="file-btn">更换图片
+          <input type="file" id="ed-file" accept="image/*" />
+        </label>
+      </div>
+      <label>诗题
+        <input type="text" id="ed-poem-title" maxlength="40" />
+      </label>
+      <label>作者
+        <input type="text" id="ed-author" maxlength="40" />
+      </label>
+      <label>诗句（每行一句）
+        <textarea class="verse" id="ed-verse"></textarea>
+      </label>
+      <label>介绍标题
+        <input type="text" id="ed-desc-title" maxlength="40" />
+      </label>
+      <label>内容简介
+        <textarea id="ed-desc"></textarea>
+      </label>
+      <label>曲名
+        <input type="text" id="ed-track" maxlength="40" />
+      </label>
+      <details class="oss-box" id="oss-box">
+        <summary>腾讯云 COS 云端保存设置</summary>
+        <p class="editor-hint">创建存储桶并开启静态网站后填写。Bucket 须带 AppId（如 mountain-echo-1250000000）。密钥仅存在本机浏览器；正式环境请改用 STS。</p>
+        <label>Region（如 ap-guangzhou）
+          <input type="text" id="oss-region" placeholder="ap-guangzhou" />
+        </label>
+        <label>Bucket（bucketname-AppId）
+          <input type="text" id="oss-bucket" placeholder="mountain-echo-1250000000" />
+        </label>
+        <label>目录前缀（可选，如 mountain-echo/）
+          <input type="text" id="oss-prefix" placeholder="mountain-echo/" />
+        </label>
+        <label>自定义域名（可选，用于拼图片公开地址）
+          <input type="text" id="oss-cdn" placeholder="https://img.example.com" />
+        </label>
+        <label>SecretId
+          <input type="text" id="oss-ak" autocomplete="off" />
+        </label>
+        <label>SecretKey
+          <input type="password" id="oss-sk" autocomplete="new-password" />
+        </label>
+      </details>
+      <p class="editor-hint" id="cloud-status">未连接云端。站点会优先读取同目录 gallery.json；点「保存到云端」会上传图片与 gallery.json。</p>
+      <div class="editor-actions">
+        <button type="button" class="primary" id="ed-apply">应用到当前页</button>
+        <button type="button" class="primary" id="ed-cloud">保存到云端</button>
+        <button type="button" id="ed-export">导出 JSON</button>
+        <button type="button" id="ed-import">导入 JSON</button>
+        <button type="button" class="danger" id="ed-reset">恢复默认</button>
+        <input type="file" id="ed-import-file" accept="application/json,.json" hidden />
+      </div>
+    </div>
+  </aside>
+
+  <!-- Audio control -->
+  <button type="button" class="audio-fab" id="audio-btn" aria-pressed="false" aria-label="播放背景曲 雾里弦声">
+    <svg class="icon" id="audio-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M8 5v14l11-7L8 5z"/>
+    </svg>
+    <span id="audio-label">雾里弦声 · 轻触播放</span>
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/cos-js-sdk-v5@1.10.1/dist/cos-js-sdk-v5.min.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "mountain-echo-gallery-v1";
+      const OSS_KEY = "mountain-echo-cos-v1";
+      const GALLERY_URL = "gallery.json";
+
+      const DEFAULT_GALLERY = [{"src": "assets/hero.jpg", "alt": "雾锁山峦，晨光微露", "poemTitle": "山回未尽", "author": "沈陌青", "verse": ["峰峦隐入薄雾里，", "独行一路无归期。", "弦声远过空谷外，", "夜色漫上旧行衣。"], "descTitle": "雾中回响", "desc": "山脊在云气里时隐时现，像一段未写完的蓝调。风从垭口穿过，带走脚步的回声，也留下缓慢、低沉的弦音——不是欢愉，是赶路人在雾里对自己轻声哼唱。", "track": "雾里弦声", "tempo": 72, "bass": [110, 110, 110, 110, 146.83, 146.83, 146.83, 146.83, 164.81, 164.81, 146.83, 110], "melody": [220, 261.63, 293.66, 261.63, 293.66, 329.63, 293.66, 246.94, 329.63, 293.66, 261.63, 220]}, {"src": "assets/thumb-mist.jpg", "alt": "云雾漫过远峰", "poemTitle": "云隙一线", "author": "沈陌青", "verse": ["远峰沉入灰蓝雾，", "一线金光裂云腹。", "松涛低作慢板声，", "心事轻如未落露。"], "descTitle": "蓝雾慢板", "desc": "黎明前最冷的一刻，云海把群山托成孤岛。那道微弱的天光像布鲁斯里突然亮起的属七和弦——短暂、克制，却足以让整段寂静重新呼吸。", "track": "云隙慢拨", "tempo": 66, "bass": [98, 98, 98, 98, 130.81, 130.81, 130.81, 130.81, 116.54, 116.54, 130.81, 98], "melody": [196, 233.08, 261.63, 233.08, 261.63, 293.66, 261.63, 220, 293.66, 261.63, 233.08, 196]}, {"src": "assets/thumb-coast.jpg", "alt": "海岸线与暮色", "poemTitle": "潮声未歇", "author": "沈陌青", "verse": ["断崖咬住灰白浪，", "风把盐味送进窗。", "吉他弦上起潮汛，", "一步一拍向远航。"], "descTitle": "岸边蓝调", "desc": "海面翻着冷绿的白沫，悬崖像一排沉默的低音。浪打礁石的节奏天然接近摇摆布鲁斯——不规则、却让人想跟着点头，把一天的疲惫冲回海里。", "track": "礁石低吟", "tempo": 78, "bass": [82.41, 82.41, 82.41, 82.41, 110, 110, 110, 110, 123.47, 123.47, 110, 82.41], "melody": [164.81, 196, 220, 196, 220, 246.94, 220, 185, 246.94, 220, 196, 164.81]}, {"src": "assets/thumb-lake.jpg", "alt": "静湖倒映山影", "poemTitle": "镜中山色", "author": "沈陌青", "verse": ["一湖墨色收千峰，", "倒影比山更从容。", "弦停之处水仍响，", "紫霞落进夜的胸。"], "descTitle": "湖心夜曲", "desc": "对称的倒影把世界对折成一张黑胶的两面。黄昏最后的紫红像唱针落下的一刻——安静、精确，随后所有声响都变得又远又近，像在水下听琴。", "track": "镜湖夜韵", "tempo": 60, "bass": [123.47, 123.47, 123.47, 123.47, 164.81, 164.81, 164.81, 164.81, 146.83, 146.83, 164.81, 123.47], "melody": [246.94, 293.66, 329.63, 293.66, 329.63, 369.99, 329.63, 277.18, 369.99, 329.63, 293.66, 246.94]}, {"src": "assets/thumb-road.jpg", "alt": "长路通向雾中", "poemTitle": "弯道无尽", "author": "沈陌青", "verse": ["秋叶铺成旧和弦，", "公路拐进雾中间。", "后视镜里山渐远，", "前灯只照三尺前。"], "descTitle": "雾路独行", "desc": "湿润的柏油路像一条被拉长的低音线，秋色与冷雾交错。开进云里时，引擎的嗡鸣与远山的寂静叠在一起——适合一首带点公路感的慢速蓝调，让人愿意把油门再松一点。", "track": "弯道回声", "tempo": 70, "bass": [103.83, 103.83, 103.83, 103.83, 138.59, 138.59, 138.59, 138.59, 155.56, 155.56, 138.59, 103.83], "melody": [207.65, 246.94, 277.18, 246.94, 277.18, 311.13, 277.18, 233.08, 311.13, 277.18, 246.94, 207.65]}];
+
+      function cloneGallery(src) {
+        return JSON.parse(JSON.stringify(src));
+      }
+
+      function mergeGallery(parsed) {
+        if (!Array.isArray(parsed) || !parsed.length) return cloneGallery(DEFAULT_GALLERY);
+        const n = Math.max(parsed.length, DEFAULT_GALLERY.length);
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          out.push(Object.assign({}, DEFAULT_GALLERY[i % DEFAULT_GALLERY.length], parsed[i] || {}));
+        }
+        return out.slice(0, Math.max(5, parsed.length));
+      }
+
+      function loadLocalDraft() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          return mergeGallery(JSON.parse(raw));
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveLocalDraft() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(GALLERY));
+        } catch (e) {
+          console.warn(e);
+          setCloudStatus("本机草稿保存失败：存储可能已满。", true);
+        }
+      }
+
+      function loadOssConfig() {
+        try {
+          return JSON.parse(localStorage.getItem(OSS_KEY) || "{}") || {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      function saveOssConfig(cfg) {
+        localStorage.setItem(OSS_KEY, JSON.stringify(cfg));
+      }
+
+      let GALLERY = cloneGallery(DEFAULT_GALLERY);
+      let current = 0;
+      let bassNotes = GALLERY[0].bass.slice();
+      let melodyNotes = GALLERY[0].melody.slice();
+      let TEMPO = GALLERY[0].tempo;
+      let BEAT = 60 / TEMPO;
+      let cloudSource = "default";
+
+      const heroImg = document.getElementById("hero-img");
+      const vinylImg = document.getElementById("vinyl-img");
+      const counter = document.getElementById("counter");
+      const chipTrack = document.getElementById("chip-track");
+      const poemTitle = document.getElementById("poem-title");
+      const poemAuthor = document.getElementById("poem-author");
+      const poemVerse = document.getElementById("poem-verse");
+      const descTitle = document.getElementById("desc-title");
+      const descBody = document.getElementById("desc-body");
+      const pillTrack = document.getElementById("pill-track");
+      const thumbs = document.querySelectorAll(".thumb");
+      const cloudStatus = document.getElementById("cloud-status");
+
+      function setCloudStatus(msg, isErr) {
+        if (!cloudStatus) return;
+        cloudStatus.textContent = msg;
+        cloudStatus.style.color = isErr ? "#f0b0b0" : "#777";
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function refreshThumbImages() {
+        thumbs.forEach((t) => {
+          const i = Number(t.dataset.index);
+          const img = t.querySelector("img");
+          if (img && GALLERY[i]) img.src = GALLERY[i].src;
+        });
+      }
+
+      function applyItem(i, { restartAudio } = { restartAudio: true }) {
+        i = Math.max(0, Math.min(GALLERY.length - 1, i));
+        const item = GALLERY[i];
+        current = i;
+        const fallback = DEFAULT_GALLERY[i % DEFAULT_GALLERY.length];
+        bassNotes = (item.bass || fallback.bass).slice();
+        melodyNotes = (item.melody || fallback.melody).slice();
+        TEMPO = item.tempo || fallback.tempo;
+        BEAT = 60 / TEMPO;
+
+        heroImg.classList.add("fading");
+        setTimeout(() => {
+          heroImg.src = item.src;
+          heroImg.alt = item.alt || item.poemTitle || "";
+          vinylImg.src = item.src;
+          heroImg.classList.remove("fading");
+        }, 160);
+
+        poemTitle.textContent = item.poemTitle;
+        poemAuthor.textContent = "—— " + item.author;
+        poemVerse.innerHTML = (item.verse || []).map((line) => "<p>" + escapeHtml(line) + "</p>").join("");
+        descTitle.textContent = item.descTitle;
+        descBody.textContent = item.desc;
+        chipTrack.textContent = item.track;
+        pillTrack.textContent = "🎵 " + item.track;
+        counter.textContent = (i + 1) + " / " + GALLERY.length;
+
+        thumbs.forEach((t) => {
+          const on = Number(t.dataset.index) === i;
+          t.classList.toggle("active", on);
+          t.setAttribute("aria-selected", on ? "true" : "false");
+        });
+
+        if (edIndex) {
+          edIndex.value = String(i);
+          syncEditorFields();
+        }
+        updateFab();
+        if (restartAudio && isPlaying) {
+          stopLoop(false);
+          startLoop();
+        }
+      }
+
+      thumbs.forEach((btn) => {
+        btn.addEventListener("click", () => applyItem(Number(btn.dataset.index)));
+      });
+
+      /* Audio */
+      let audioCtx = null;
+      let masterGain = null;
+      let isPlaying = false;
+      let scheduleTimer = null;
+      let nextNoteTime = 0;
+      let step = 0;
+
+      function ensureCtx() {
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AC();
+          masterGain = audioCtx.createGain();
+          masterGain.gain.value = 0.12;
+          const lp = audioCtx.createBiquadFilter();
+          lp.type = "lowpass";
+          lp.frequency.value = 1800;
+          lp.Q.value = 0.7;
+          masterGain.connect(lp);
+          lp.connect(audioCtx.destination);
+        }
+        return audioCtx;
+      }
+
+      function playTone(freq, start, dur, type, gainVal) {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(gainVal, start + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start(start);
+        osc.stop(start + dur + 0.05);
+      }
+
+      function playSoftPad(freq, start, dur) {
+        [0, 1.5].forEach((detune) => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, start);
+          osc.detune.setValueAtTime(detune, start);
+          g.gain.setValueAtTime(0, start);
+          g.gain.linearRampToValueAtTime(0.035, start + 0.3);
+          g.gain.setValueAtTime(0.035, start + dur - 0.4);
+          g.gain.linearRampToValueAtTime(0.001, start + dur);
+          osc.connect(g);
+          g.connect(masterGain);
+          osc.start(start);
+          osc.stop(start + dur + 0.05);
+        });
+      }
+
+      function scheduleAhead() {
+        const lookAhead = 0.25;
+        while (nextNoteTime < audioCtx.currentTime + lookAhead) {
+          const i = step % 12;
+          const t = nextNoteTime;
+          playTone(bassNotes[i], t, BEAT * 0.85, "triangle", 0.09);
+          playTone(bassNotes[i] * 1.5, t + 0.02, BEAT * 0.5, "sine", 0.03);
+          if (i % 2 === 0) playTone(melodyNotes[i], t + BEAT * 0.15, BEAT * 1.2, "sine", 0.045);
+          if (i % 4 === 0) playSoftPad(bassNotes[i] * 2, t, BEAT * 4.2);
+          nextNoteTime += BEAT;
+          step++;
+        }
+      }
+
+      function startLoop() {
+        ensureCtx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        if (masterGain) masterGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        nextNoteTime = audioCtx.currentTime + 0.08;
+        step = 0;
+        scheduleAhead();
+        scheduleTimer = setInterval(scheduleAhead, 100);
+        isPlaying = true;
+        updateFab();
+      }
+
+      function stopLoop(update = true) {
+        if (scheduleTimer) {
+          clearInterval(scheduleTimer);
+          scheduleTimer = null;
+        }
+        if (masterGain && audioCtx) {
+          const now = audioCtx.currentTime;
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+          masterGain.gain.linearRampToValueAtTime(0.001, now + 0.25);
+        }
+        isPlaying = false;
+        if (update) updateFab();
+      }
+
+      const audioBtn = document.getElementById("audio-btn");
+      const audioLabel = document.getElementById("audio-label");
+      const audioIcon = document.getElementById("audio-icon");
+
+      function updateFab() {
+        const name = GALLERY[current].track;
+        audioBtn.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+        audioBtn.setAttribute("aria-label", (isPlaying ? "暂停背景曲 " : "播放背景曲 ") + name);
+        audioLabel.textContent = isPlaying ? name + " · 播放中" : name + " · 轻触播放";
+        audioIcon.innerHTML = isPlaying
+          ? '<path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/>'
+          : '<path d="M8 5v14l11-7L8 5z"/>';
+      }
+
+      audioBtn.addEventListener("click", () => {
+        if (isPlaying) stopLoop();
+        else startLoop();
+      });
+
+      /* Editor + Cloud */
+      const editToggle = document.getElementById("edit-toggle");
+      const editor = document.getElementById("editor");
+      const backdrop = document.getElementById("editor-backdrop");
+      const editorClose = document.getElementById("editor-close");
+      const edIndex = document.getElementById("ed-index");
+      const edPreview = document.getElementById("ed-preview");
+      const edFile = document.getElementById("ed-file");
+      const edPoemTitle = document.getElementById("ed-poem-title");
+      const edAuthor = document.getElementById("ed-author");
+      const edVerse = document.getElementById("ed-verse");
+      const edDescTitle = document.getElementById("ed-desc-title");
+      const edDesc = document.getElementById("ed-desc");
+      const edTrack = document.getElementById("ed-track");
+      const edApply = document.getElementById("ed-apply");
+      const edCloud = document.getElementById("ed-cloud");
+      const edExport = document.getElementById("ed-export");
+      const edImport = document.getElementById("ed-import");
+      const edImportFile = document.getElementById("ed-import-file");
+      const edReset = document.getElementById("ed-reset");
+      const ossRegion = document.getElementById("oss-region");
+      const ossBucket = document.getElementById("oss-bucket");
+      const ossPrefix = document.getElementById("oss-prefix");
+      const ossCdn = document.getElementById("oss-cdn");
+      const ossAk = document.getElementById("oss-ak");
+      const ossSk = document.getElementById("oss-sk");
+
+      DEFAULT_GALLERY.forEach((item, i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = (i + 1) + " · " + item.poemTitle;
+        edIndex.appendChild(opt);
+      });
+
+      function fillOssForm() {
+        const cfg = loadOssConfig();
+        ossRegion.value = cfg.region || "";
+        ossBucket.value = cfg.bucket || "";
+        ossPrefix.value = cfg.prefix || "mountain-echo/";
+        ossCdn.value = cfg.cdn || "";
+        ossAk.value = cfg.accessKeyId || "";
+        ossSk.value = cfg.accessKeySecret || "";
+      }
+
+      function readOssForm() {
+        const cfg = {
+          region: ossRegion.value.trim(),
+          bucket: ossBucket.value.trim(),
+          prefix: (ossPrefix.value.trim() || "").replace(/^\/+/, ""),
+          cdn: (ossCdn.value.trim() || "").replace(/\/$/, ""),
+          accessKeyId: ossAk.value.trim(),
+          accessKeySecret: ossSk.value.trim()
+        };
+        if (cfg.prefix && !cfg.prefix.endsWith("/")) cfg.prefix += "/";
+        saveOssConfig(cfg);
+        return cfg;
+      }
+
+      function openEditor() {
+        editor.classList.add("open");
+        editor.setAttribute("aria-hidden", "false");
+        backdrop.hidden = false;
+        requestAnimationFrame(() => backdrop.classList.add("show"));
+        edIndex.value = String(current);
+        fillOssForm();
+        syncEditorFields();
+      }
+
+      function closeEditor() {
+        editor.classList.remove("open");
+        editor.setAttribute("aria-hidden", "true");
+        backdrop.classList.remove("show");
+        setTimeout(() => { backdrop.hidden = true; }, 280);
+      }
+
+      function syncEditorFields() {
+        const item = GALLERY[Number(edIndex.value) || current];
+        if (!item) return;
+        edPreview.src = item.src;
+        edPoemTitle.value = item.poemTitle || "";
+        edAuthor.value = item.author || "";
+        edVerse.value = (item.verse || []).join("\n");
+        edDescTitle.value = item.descTitle || "";
+        edDesc.value = item.desc || "";
+        edTrack.value = item.track || "";
+        Array.from(edIndex.options).forEach((opt, i) => {
+          if (GALLERY[i]) opt.textContent = (i + 1) + " · " + (GALLERY[i].poemTitle || DEFAULT_GALLERY[i % DEFAULT_GALLERY.length].poemTitle);
+        });
+      }
+
+      function readEditorIntoGallery(i) {
+        const verse = edVerse.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        GALLERY[i].poemTitle = edPoemTitle.value.trim() || GALLERY[i].poemTitle;
+        GALLERY[i].author = edAuthor.value.trim() || GALLERY[i].author;
+        GALLERY[i].verse = verse.length ? verse : GALLERY[i].verse;
+        GALLERY[i].descTitle = edDescTitle.value.trim() || GALLERY[i].descTitle;
+        GALLERY[i].desc = edDesc.value.trim() || GALLERY[i].desc;
+        GALLERY[i].track = edTrack.value.trim() || GALLERY[i].track;
+        GALLERY[i].alt = GALLERY[i].poemTitle;
+      }
+
+      editToggle.addEventListener("click", openEditor);
+      editorClose.addEventListener("click", closeEditor);
+      backdrop.addEventListener("click", closeEditor);
+
+      edIndex.addEventListener("change", () => {
+        applyItem(Number(edIndex.value));
+      });
+
+      edFile.addEventListener("change", () => {
+        const file = edFile.files && edFile.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          alert("请选择图片文件");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          const i = Number(edIndex.value);
+          GALLERY[i].src = reader.result;
+          edPreview.src = reader.result;
+          refreshThumbImages();
+          if (i === current) {
+            heroImg.src = reader.result;
+            vinylImg.src = reader.result;
+          }
+          saveLocalDraft();
+          setCloudStatus("图片已写入本机草稿，记得点「保存到云端」同步。");
+        };
+        reader.readAsDataURL(file);
+        edFile.value = "";
+      });
+
+      edApply.addEventListener("click", () => {
+        const i = Number(edIndex.value);
+        readEditorIntoGallery(i);
+        saveLocalDraft();
+        refreshThumbImages();
+        applyItem(i);
+        setCloudStatus("已应用到页面，并写入本机草稿。云端需再点「保存到云端」。");
+      });
+
+      [edPoemTitle, edAuthor, edVerse, edDescTitle, edDesc, edTrack].forEach((el) => {
+        el.addEventListener("change", () => {
+          const i = Number(edIndex.value);
+          readEditorIntoGallery(i);
+          saveLocalDraft();
+          if (i === current) applyItem(i, { restartAudio: el === edTrack });
+        });
+      });
+
+      function dataURLtoBlob(dataUrl) {
+        const parts = dataUrl.split(",");
+        const mime = parts[0].match(/:(.*?);/)[1];
+        const bin = atob(parts[1]);
+        const arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+      }
+
+      function publicUrl(cfg, objectKey) {
+        if (cfg.cdn) return cfg.cdn + "/" + objectKey.replace(/^\//, "");
+        const region = cfg.region.replace(/^https?:\/\//, "").replace(/^cos\./, "");
+        return "https://" + cfg.bucket + ".cos." + region + ".myqcloud.com/" + objectKey.replace(/^\//, "");
+      }
+
+      function normalizeCosRegion(region) {
+        let r = (region || "").trim().replace(/^https?:\/\//, "");
+        r = r.replace(/\.myqcloud\.com.*$/, "").replace(/^cos\./, "");
+        if (r.indexOf("ap-") === 0 || r.indexOf("na-") === 0 || r.indexOf("eu-") === 0) return r;
+        return r;
+      }
+
+      function createCosClient(cfg) {
+        if (!window.COS) throw new Error("COS SDK 未加载");
+        if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
+          throw new Error("请完整填写 Region / Bucket / SecretId / SecretKey");
+        }
+        return new COS({
+          SecretId: cfg.accessKeyId,
+          SecretKey: cfg.accessKeySecret
+        });
+      }
+
+      function putCosObject(cos, cfg, key, body, contentType) {
+        return new Promise(function (resolve, reject) {
+          cos.putObject({
+            Bucket: cfg.bucket,
+            Region: normalizeCosRegion(cfg.region),
+            Key: key,
+            Body: body,
+            ContentType: contentType || undefined,
+            ACL: "public-read",
+            CacheControl: contentType && contentType.indexOf("json") >= 0 ? "no-cache" : undefined
+          }, function (err, data) {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
+      }
+
+      async function publishToOss() {
+        const iCur = Number(edIndex.value);
+        readEditorIntoGallery(iCur);
+        const cfg = readOssForm();
+        setCloudStatus("正在上传到腾讯云 COS…");
+        edCloud.disabled = true;
+        try {
+          const cos = createCosClient(cfg);
+          const prefix = cfg.prefix || "";
+          const published = cloneGallery(GALLERY);
+
+          for (let i = 0; i < published.length; i++) {
+            const src = published[i].src || "";
+            if (typeof src === "string" && src.indexOf("data:image/") === 0) {
+              const blob = dataURLtoBlob(src);
+              const ext = (blob.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
+              const key = prefix + "uploads/" + Date.now() + "-" + i + "." + ext;
+              await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
+              published[i].src = publicUrl(cfg, key);
+            }
+          }
+
+          const galleryKey = prefix + "gallery.json";
+          const body = new Blob([JSON.stringify(published, null, 2)], { type: "application/json;charset=utf-8" });
+          await putCosObject(cos, cfg, galleryKey, body, "application/json;charset=utf-8");
+
+          GALLERY = published;
+          saveLocalDraft();
+          refreshThumbImages();
+          applyItem(current, { restartAudio: false });
+          const url = publicUrl(cfg, galleryKey);
+          setCloudStatus("已保存到云端：" + url);
+          alert("已保存到云端。\n" + url + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。");
+        } catch (e) {
+          console.error(e);
+          const msg = (e && (e.message || e.error || e.Message)) || String(e);
+          setCloudStatus("云端保存失败：" + msg, true);
+          alert("云端保存失败：" + msg);
+        } finally {
+          edCloud.disabled = false;
+        }
+      }
+
+      edCloud.addEventListener("click", () => {
+        const cfg = readOssForm();
+        if (!cfg.bucket || !cfg.accessKeyId) {
+          document.getElementById("oss-box").open = true;
+          alert("请先展开并填写腾讯云 COS 设置");
+          return;
+        }
+        publishToOss();
+      });
+
+      edExport.addEventListener("click", () => {
+        const i = Number(edIndex.value);
+        readEditorIntoGallery(i);
+        saveLocalDraft();
+        const blob = new Blob([JSON.stringify(GALLERY, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "gallery.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        setCloudStatus("已下载 gallery.json，可手动上传到 COS 网站根目录（或前缀目录）。");
+      });
+
+      edImport.addEventListener("click", () => edImportFile.click());
+      edImportFile.addEventListener("change", () => {
+        const file = edImportFile.files && edImportFile.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            GALLERY = mergeGallery(JSON.parse(reader.result));
+            saveLocalDraft();
+            refreshThumbImages();
+            applyItem(current);
+            setCloudStatus("已从 JSON 导入到本机草稿。");
+            alert("导入成功");
+          } catch (e) {
+            alert("导入失败：" + e.message);
+          }
+        };
+        reader.readAsText(file);
+        edImportFile.value = "";
+      });
+
+      edReset.addEventListener("click", () => {
+        if (!confirm("恢复默认图文？本机草稿会清除（云端文件不会自动删）。")) return;
+        GALLERY = cloneGallery(DEFAULT_GALLERY);
+        localStorage.removeItem(STORAGE_KEY);
+        refreshThumbImages();
+        applyItem(0);
+        setCloudStatus("已恢复默认。");
+      });
+
+      async function boot() {
+        fillOssForm();
+        // Prefer cloud/local gallery.json, then local draft, then defaults
+        try {
+          const res = await fetch(GALLERY_URL + "?t=" + Date.now(), { cache: "no-store" });
+          if (res.ok) {
+            GALLERY = mergeGallery(await res.json());
+            cloudSource = "gallery.json";
+            setCloudStatus("已从 gallery.json 加载云端/站点内容。");
+          } else {
+            throw new Error("HTTP " + res.status);
+          }
+        } catch (e) {
+          const draft = loadLocalDraft();
+          if (draft) {
+            GALLERY = draft;
+            cloudSource = "localStorage";
+            setCloudStatus("未读到 gallery.json，已加载本机草稿。部署到腾讯云 COS 后即可云端同步。");
+          } else {
+            GALLERY = cloneGallery(DEFAULT_GALLERY);
+            cloudSource = "default";
+            setCloudStatus("使用默认内容。配置腾讯云 COS 后可保存到云端。");
+          }
+        }
+        // Ensure 5 thumbs exist visually even if more/less — page has 5 buttons
+        while (GALLERY.length < 5) GALLERY.push(cloneGallery(DEFAULT_GALLERY)[GALLERY.length % 5]);
+        if (GALLERY.length > 5) {
+          // keep first 5 for current UI thumbs
+          GALLERY = GALLERY.slice(0, 5);
+        }
+        refreshThumbImages();
+        applyItem(0, { restartAudio: false });
+      }
+
+      boot();
+    })();
+  </script>
+</body>
+</html>
