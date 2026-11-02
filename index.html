@@ -843,6 +843,13 @@
       <label>曲名
         <input type="text" id="ed-track" maxlength="40" />
       </label>
+      <div class="slot-actions">
+        <label class="file-btn">上传背景曲 MP3
+          <input type="file" id="ed-audio" accept="audio/mpeg,.mp3,audio/mp3" />
+        </label>
+        <button type="button" id="ed-audio-clear">清除背景曲</button>
+      </div>
+      <p class="editor-hint" id="ed-audio-name">未选择 MP3，播放时使用合成弦声。</p>
       <details class="oss-box" id="oss-box">
         <summary>腾讯云 COS 云端保存设置</summary>
         <p class="editor-hint">创建存储桶并开启静态网站后填写。Bucket 须带 AppId（如 mountain-echo-1250000000）。密钥仅存在本机浏览器；正式环境请改用 STS。</p>
@@ -964,9 +971,18 @@
         }
       }
 
+      function persistableGallery() {
+        return GALLERY.map(function (item) {
+          const copy = Object.assign({}, item);
+          const src = copy.audioSrc ? String(copy.audioSrc) : "";
+          if (src.indexOf("blob:") === 0 || src.indexOf("data:") === 0) delete copy.audioSrc;
+          return copy;
+        });
+      }
+
       function saveLocalDraft() {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(GALLERY));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(persistableGallery()));
           return true;
         } catch (e) {
           console.warn(e);
@@ -1108,8 +1124,9 @@
         }
         updateFab();
         if (restartAudio && isPlaying) {
+          stopHtmlAudio();
           stopLoop(false);
-          startLoop();
+          startPlayback();
         }
       }
 
@@ -1230,9 +1247,86 @@
           : '<path d="M8 5v14l11-7L8 5z"/>';
       }
 
+      let htmlAudio = null;
+      const pendingAudio = new Map();
+
+      function stopHtmlAudio() {
+        if (!htmlAudio) return;
+        htmlAudio.pause();
+      }
+
+      function ensureHtmlAudio() {
+        if (!htmlAudio) {
+          htmlAudio = new Audio();
+          htmlAudio.loop = true;
+          htmlAudio.preload = "none";
+        }
+        return htmlAudio;
+      }
+
+      function resolveMediaUrl(src) {
+        const s = src ? String(src).trim() : "";
+        if (!s) return "";
+        if (/^(https?:|blob:)/i.test(s)) return s;
+        const cfg = loadOssConfig();
+        const bucket = String(cfg.bucket || "").trim() || PUBLIC_COS.bucket;
+        const region = normalizeCosRegion(cfg.region) || PUBLIC_COS.region;
+        const cdn = String(cfg.cdn || "").trim().replace(/\/$/, "");
+        return publicUrl({ bucket: bucket, region: region, cdn: cdn }, s.replace(/^\/+/, ""));
+      }
+
+      function startPlayback() {
+        const item = GALLERY[current];
+        const src = resolveMediaUrl(item && item.audioSrc);
+        if (src) {
+          stopLoop(false);
+          const audio = ensureHtmlAudio();
+          if (audio.getAttribute("data-src") !== src) {
+            audio.src = src;
+            audio.setAttribute("data-src", src);
+          }
+          isPlaying = true;
+          updateFab();
+          const played = audio.play();
+          if (played && played.catch) {
+            played.catch(function (err) {
+              isPlaying = false;
+              updateFab();
+              setCloudStatus("无法播放 MP3：" + ((err && err.message) || err), true);
+            });
+          }
+          return;
+        }
+        stopHtmlAudio();
+        startLoop();
+      }
+
+      function safeAudioName(name) {
+        let base = String(name || "track.mp3").split(/[/\\]/).pop();
+        base = base.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+        if (!/\.mp3$/i.test(base)) base += ".mp3";
+        if (!base || base === ".mp3") base = "track.mp3";
+        return base.slice(0, 80);
+      }
+
+      function shiftPendingAudio(removedIndex) {
+        const entries = Array.from(pendingAudio.entries());
+        pendingAudio.clear();
+        entries.forEach(function (pair) {
+          const idx = pair[0];
+          const file = pair[1];
+          if (idx === removedIndex) return;
+          pendingAudio.set(idx > removedIndex ? idx - 1 : idx, file);
+        });
+      }
+
       audioBtn.addEventListener("click", () => {
-        if (isPlaying) stopLoop();
-        else startLoop();
+        if (isPlaying) {
+          stopHtmlAudio();
+          stopLoop(true);
+        } else {
+          startPlayback();
+        }
       });
 
       /* Editor + Cloud */
@@ -1251,6 +1345,8 @@
       const edDescTitle = document.getElementById("ed-desc-title");
       const edDesc = document.getElementById("ed-desc");
       const edTrack = document.getElementById("ed-track");
+      const edAudio = document.getElementById("ed-audio");
+      const edAudioClear = document.getElementById("ed-audio-clear");
       const edApply = document.getElementById("ed-apply");
       const edCloud = document.getElementById("ed-cloud");
       const edExport = document.getElementById("ed-export");
@@ -1340,6 +1436,22 @@
         edDescTitle.value = item.descTitle || "";
         edDesc.value = item.desc || "";
         edTrack.value = item.track || "";
+        syncAudioHint();
+      }
+
+      function syncAudioHint() {
+        const el = document.getElementById("ed-audio-name");
+        if (!el) return;
+        const item = GALLERY[current];
+        const src = item && item.audioSrc ? String(item.audioSrc) : "";
+        const name = item && item.audioName ? item.audioName : "";
+        if (src.indexOf("blob:") === 0) {
+          el.textContent = "已选择「" + (name || "MP3") + "」，尚未上传。请点「保存到云端」。播放时使用这首 MP3。";
+        } else if (src) {
+          el.textContent = "已关联 MP3" + (name ? "：" + name : "") + "。播放时使用这首曲子；清除后恢复合成弦声。";
+        } else {
+          el.textContent = "未选择 MP3，播放时使用合成弦声。";
+        }
       }
 
       function addItem() {
@@ -1364,7 +1476,10 @@
         const i = Number(edIndex.value);
         const title = (GALLERY[i] && GALLERY[i].poemTitle) || ("第 " + (i + 1) + " 条");
         if (!confirm("删除「" + title + "」？不会自动删除已经上传到云端的文件。")) return;
+        const doomed = GALLERY[i] && GALLERY[i].audioSrc;
+        if (doomed && String(doomed).indexOf("blob:") === 0) URL.revokeObjectURL(doomed);
         GALLERY.splice(i, 1);
+        shiftPendingAudio(i);
         saveLocalDraft();
         renderThumbs();
         applyItem(Math.min(i, GALLERY.length - 1), { restartAudio: false });
@@ -1571,6 +1686,50 @@
         edFile.value = "";
       });
 
+      edAudio.addEventListener("change", () => {
+        const file = edAudio.files && edAudio.files[0];
+        edAudio.value = "";
+        if (!file) return;
+        const isMp3 = file.type === "audio/mpeg" || file.type === "audio/mp3" || /\.mp3$/i.test(file.name);
+        if (!isMp3) {
+          alert("请选择 MP3 文件");
+          return;
+        }
+        const i = Number(edIndex.value);
+        const prev = GALLERY[i] && GALLERY[i].audioSrc;
+        if (prev && String(prev).indexOf("blob:") === 0) URL.revokeObjectURL(prev);
+        pendingAudio.set(i, file);
+        GALLERY[i].audioSrc = URL.createObjectURL(file);
+        GALLERY[i].audioName = file.name;
+        saveLocalDraft();
+        syncAudioHint();
+        setCloudStatus("已选择 MP3「" + file.name + "」。请点「保存到云端」，文件会传到 COS，不会写进 gallery.json 的正文。");
+        if (i === current && isPlaying) {
+          stopLoop(false);
+          stopHtmlAudio();
+          startPlayback();
+        }
+      });
+
+      edAudioClear.addEventListener("click", () => {
+        const i = Number(edIndex.value);
+        const prev = GALLERY[i] && GALLERY[i].audioSrc;
+        if (prev && String(prev).indexOf("blob:") === 0) URL.revokeObjectURL(prev);
+        pendingAudio.delete(i);
+        if (GALLERY[i]) {
+          delete GALLERY[i].audioSrc;
+          delete GALLERY[i].audioName;
+        }
+        saveLocalDraft();
+        syncAudioHint();
+        setCloudStatus("已清除这首的 MP3。播放时恢复合成弦声；若要同步到云端，请再点「保存到云端」。");
+        if (i === current && isPlaying) {
+          stopHtmlAudio();
+          stopLoop(false);
+          startLoop();
+        }
+      });
+
       edApply.addEventListener("click", () => {
         const i = Number(edIndex.value);
         readEditorIntoGallery(i);
@@ -1697,10 +1856,23 @@
               await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
               published[i].src = publicUrl(cfg, key);
             }
+            const audioFile = pendingAudio.get(i);
+            let audioSrc = published[i].audioSrc ? String(published[i].audioSrc) : "";
+            if (audioFile) {
+              const key = prefix + "audio/" + Date.now() + "-" + i + "-" + safeAudioName(audioFile.name);
+              await putCosObject(cos, cfg, key, audioFile, audioFile.type || "audio/mpeg");
+              published[i].audioSrc = publicUrl(cfg, key);
+              published[i].audioName = audioFile.name;
+            } else if (audioSrc.indexOf("blob:") === 0 || audioSrc.indexOf("data:") === 0) {
+              delete published[i].audioSrc;
+            }
           }
 
           const galleryKey = prefix + "gallery.json";
           const payload = JSON.stringify(published, null, 2);
+          if (payload.indexOf("blob:") !== -1 || payload.indexOf("data:audio") !== -1 || payload.indexOf("data:application") !== -1) {
+            throw new Error("仍有未上传的 MP3，不能写入 gallery.json");
+          }
           const savedCount = JSON.parse(payload).length;
           if (savedCount !== published.length || !savedCount) {
             throw new Error("准备写入的条目数量不一致");
@@ -1708,6 +1880,11 @@
           const body = new Blob([payload], { type: "application/json;charset=utf-8" });
           await putCosObject(cos, cfg, galleryKey, body, "application/json;charset=utf-8");
 
+          pendingAudio.forEach(function (file, idx) {
+            const oldSrc = GALLERY[idx] && GALLERY[idx].audioSrc;
+            if (oldSrc && String(oldSrc).indexOf("blob:") === 0) URL.revokeObjectURL(oldSrc);
+          });
+          pendingAudio.clear();
           GALLERY = published;
           cloudItemCount = savedCount;
           saveLocalDraft();
