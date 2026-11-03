@@ -226,22 +226,6 @@
       .vinyl { animation: none; }
     }
 
-    .counter {
-      position: absolute;
-      z-index: 4;
-      top: 0.75rem;
-      left: 0.75rem;
-      padding: 0.35rem 0.65rem;
-      background: rgba(18, 18, 18, 0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: clamp(0.7rem, 2vw, 0.8rem);
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-    }
-
     /* —— THUMBS —— */
     .thumbs-wrap {
       position: relative;
@@ -518,7 +502,6 @@
         overflow: hidden;
       }
       .hero-stage { --pw: 62%; --vw: 0.96; max-width: 880px; }
-      .counter { top: 1rem; left: 1rem; }
     }
 
     @media (min-width: 1280px) {
@@ -738,7 +721,6 @@
     <!-- Hero -->
     <section class="hero" aria-label="主图画廊">
       <div class="hero-stage">
-        <div class="counter" id="counter" aria-live="polite">1 / 5</div>
         <div class="hero-photo">
           <img id="hero-img" src="assets/hero.jpg" alt="雾锁山峦，晨光微露" width="800" height="800" />
         </div>
@@ -1071,7 +1053,6 @@
         if (ev.key === "Escape" && !heroOverlay.hidden) closeHeroOverlay();
       });
       const vinylImg = document.getElementById("vinyl-img");
-      const counter = document.getElementById("counter");
       const poemTitle = document.getElementById("poem-title");
       const poemAuthor = document.getElementById("poem-author");
       const poemVerse = document.getElementById("poem-verse");
@@ -1161,7 +1142,6 @@
         descBody.textContent = item.desc;
         pillTrack.textContent = "🎵 " + item.track;
         renderItemMeta(item);
-        counter.textContent = (i + 1) + " / " + GALLERY.length;
 
         thumbsRoot.querySelectorAll(".thumb").forEach((t) => {
           const on = Number(t.dataset.index) === i;
