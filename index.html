@@ -20,6 +20,18 @@
       --border-color: #2a2a2a;
       --edit-btn: #1e1e1e;
       --play-btn: #1e1e1e;
+      --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --size-body: 1rem;
+      --font-title: "Ma Shan Zheng", "KaiTi", "STKaiti", cursive;
+      --size-title: 2.15rem;
+      --font-verse: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --size-verse: 1.05rem;
+      --font-heading: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --size-heading: 1.15rem;
+      --font-desc: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --size-desc: 0.93rem;
+      --font-ui: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --size-ui: 0.8rem;
       --card: var(--chip);
       --card-elevated: var(--chip);
       --border: var(--border-color);
@@ -41,7 +53,8 @@
     }
 
     body {
-      font-family: "Noto Sans SC", system-ui, sans-serif;
+      font-family: var(--font-body);
+      font-size: var(--size-body);
       background: var(--bg);
       color: var(--text);
       min-height: 100dvh;
@@ -332,8 +345,8 @@
     }
 
     .poem-title {
-      font-family: "Ma Shan Zheng", "Noto Serif SC", serif;
-      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-family: var(--font-title);
+      font-size: var(--size-title);
       font-weight: 400;
       letter-spacing: 0.12em;
       color: var(--text);
@@ -342,16 +355,16 @@
     }
 
     .poem-author {
-      font-family: "Noto Serif SC", serif;
-      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      font-family: var(--font-verse);
+      font-size: calc(var(--size-verse) * 0.84);
       color: var(--muted);
       margin-bottom: clamp(1rem, 3vw, 1.5rem);
       letter-spacing: 0.08em;
     }
 
     .poem-verse {
-      font-family: "Noto Serif SC", serif;
-      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      font-family: var(--font-verse);
+      font-size: var(--size-verse);
       color: color-mix(in srgb, var(--text) 78%, var(--muted));
       line-height: 2;
       letter-spacing: 0.06em;
@@ -366,7 +379,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem 0.75rem;
-      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      font-size: var(--size-ui);
       color: var(--muted);
     }
 
@@ -384,7 +397,8 @@
       background: var(--chip);
       border: 1px solid var(--border-color);
       border-radius: 999px;
-      font-size: clamp(0.68rem, 1.7vw, 0.75rem);
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       color: var(--text);
     }
 
@@ -403,7 +417,8 @@
       background: var(--chip);
       border: 1px solid var(--border-color);
       border-radius: 999px;
-      font-size: clamp(0.7rem, 1.8vw, 0.78rem);
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       color: var(--text);
     }
     .meta-info[hidden],
@@ -419,8 +434,8 @@
     }
 
     .desc-card h2 {
-      font-family: "Noto Serif SC", serif;
-      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      font-family: var(--font-heading);
+      font-size: var(--size-heading);
       font-weight: 600;
       margin-bottom: 0.75rem;
       color: var(--text);
@@ -428,7 +443,8 @@
     }
 
     .desc-card p {
-      font-size: clamp(0.88rem, 2.2vw, 0.98rem);
+      font-family: var(--font-desc);
+      font-size: var(--size-desc);
       color: var(--muted);
       line-height: 1.85;
       letter-spacing: 0.02em;
@@ -450,8 +466,8 @@
       border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-color));
       border-radius: 999px;
       color: var(--text);
-      font-family: inherit;
-      font-size: 0.8rem;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       line-height: 1;
       cursor: pointer;
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
@@ -531,7 +547,10 @@
       color: var(--text);
       border-radius: 999px;
       padding: 0.45rem 0.9rem;
-      font: 500 0.8rem/1 "Noto Sans SC", sans-serif;
+      font-family: var(--font-ui);
+      font-weight: 500;
+      font-size: var(--size-ui);
+      line-height: 1;
       cursor: pointer;
       backdrop-filter: blur(10px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.35);
@@ -559,13 +578,14 @@
       box-shadow: var(--shadow);
     }
     .edit-gate-card h2 {
-      font-family: "Noto Serif SC", serif;
-      font-size: 1.15rem;
+      font-family: var(--font-heading);
+      font-size: var(--size-heading);
       margin: 0 0 0.4rem;
     }
     .edit-gate-error {
       color: #f0b0b0;
-      font-size: 0.78rem;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       margin: 0.45rem 0 0;
     }
 
@@ -595,9 +615,9 @@
     .editor h2,
     .editor h3 {
       color: var(--text);
-      font-size: 1.05rem;
+      font-family: var(--font-heading);
+      font-size: var(--size-heading);
       margin: 0 0 0.75rem;
-      font-family: "Noto Serif SC", serif;
     }
     .editor-top {
       display: flex;
@@ -628,7 +648,8 @@
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      font-size: 0.78rem;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       color: var(--muted);
     }
     .editor input[type="text"],
@@ -642,7 +663,10 @@
       color: var(--text);
       border-radius: 12px;
       padding: 0.55rem 0.7rem;
-      font: 400 0.9rem/1.45 "Noto Sans SC", sans-serif;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
+      font-weight: 400;
+      line-height: 1.45;
       resize: vertical;
     }
     .editor textarea { min-height: 88px; }
@@ -664,7 +688,10 @@
       color: var(--text);
       border-radius: 999px;
       padding: 0.45rem 0.85rem;
-      font: 500 0.78rem/1 "Noto Sans SC", sans-serif;
+      font-family: var(--font-ui);
+      font-weight: 500;
+      font-size: var(--size-ui);
+      line-height: 1;
       cursor: pointer;
     }
     .editor-actions button.primary,
@@ -715,7 +742,8 @@
     .oss-box summary {
       cursor: pointer;
       color: var(--text);
-      font-size: 0.85rem;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       margin-bottom: 0.5rem;
     }
     .oss-box label { margin-top: 0.55rem; }
@@ -739,8 +767,8 @@
     }
     .theme-head h3 {
       margin: 0 0 0.3rem;
-      font-family: "Noto Serif SC", serif;
-      font-size: 1.02rem;
+      font-family: var(--font-heading);
+      font-size: var(--size-heading);
       font-weight: 600;
       letter-spacing: 0.08em;
     }
@@ -755,7 +783,10 @@
       color: var(--text);
       border-radius: 999px;
       padding: 0.4rem 0.78rem;
-      font: 500 0.75rem/1 "Noto Sans SC", sans-serif;
+      font-family: var(--font-ui);
+      font-weight: 500;
+      font-size: var(--size-ui);
+      line-height: 1;
       cursor: pointer;
     }
     .theme-presets button.is-active {
@@ -771,7 +802,8 @@
     }
     .theme-group h4 {
       margin: 0.2rem 0 0;
-      font: 500 0.7rem/1 "Noto Sans SC", sans-serif;
+      font-family: var(--font-ui);
+      font-size: calc(var(--size-ui) * 0.9);
       letter-spacing: 0.12em;
       color: var(--muted);
     }
@@ -785,7 +817,8 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       background: var(--bg);
-      font-size: 0.78rem;
+      font-family: var(--font-ui);
+      font-size: var(--size-ui);
       color: var(--text);
     }
     .theme-row .name { flex: 1; min-width: 0; }
@@ -829,7 +862,30 @@
       border-color: var(--accent);
       outline: none;
     }
-    .editor input.theme-hex.is-invalid {
+    .font-box { margin-top: 0.15rem; }
+    .font-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .font-row .name { flex: 1; min-width: 0; }
+    .editor select.font-family,
+    .editor input.font-size {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: 0.32rem 0.4rem;
+      border-radius: 8px;
+      background: var(--text-area);
+      color: var(--text);
+      border: 1px solid var(--border-color);
+      font-family: var(--font-ui);
+      font-size: calc(var(--size-ui) * 0.9);
+      line-height: 1.2;
+    }
+    .editor select.font-family { flex: 0 1 7.2rem; }
+    .editor input.font-size { width: 4.2rem; flex: 0 0 auto; }
+    .editor input.font-size.is-invalid {
       border-color: rgba(240, 176, 176, 0.9);
       color: #f0b0b0;
     }
@@ -841,10 +897,29 @@
         var data = raw && JSON.parse(raw);
         var colors = data && data.colors;
         var map = { bg: "--bg", textArea: "--text-area", text: "--text", muted: "--muted", hero: "--hero", chip: "--chip", border: "--border-color", accent: "--accent", editBtn: "--edit-btn", playBtn: "--play-btn" };
-        if (!colors) return;
-        Object.keys(map).forEach(function (key) {
-          if (/^#[0-9a-fA-F]{6}$/.test(colors[key] || "")) document.documentElement.style.setProperty(map[key], colors[key]);
-        });
+        if (colors) {
+          Object.keys(map).forEach(function (key) {
+            if (/^#[0-9a-fA-F]{6}$/.test(colors[key] || "")) document.documentElement.style.setProperty(map[key], colors[key]);
+          });
+        }
+        var fonts = data && data.fonts;
+        var stacks = {
+          sans: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
+          serif: '"Noto Serif SC", "Songti SC", "SimSun", serif',
+          brush: '"Ma Shan Zheng", "KaiTi", "STKaiti", cursive',
+          system: 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif',
+          mono: 'ui-monospace, "Sarasa Mono SC", "Noto Sans SC", monospace'
+        };
+        var roles = { body: ["--font-body", "--size-body"], title: ["--font-title", "--size-title"], verse: ["--font-verse", "--size-verse"], heading: ["--font-heading", "--size-heading"], desc: ["--font-desc", "--size-desc"], ui: ["--font-ui", "--size-ui"] };
+        if (fonts) {
+          Object.keys(roles).forEach(function (role) {
+            var item = fonts[role];
+            if (!item) return;
+            if (stacks[item.family]) document.documentElement.style.setProperty(roles[role][0], stacks[item.family]);
+            var size = Number(item.size);
+            if (size >= 0.7 && size <= 3.5) document.documentElement.style.setProperty(roles[role][1], size + "rem");
+          });
+        }
       } catch (e) {}
     })();
   </script>
@@ -1011,6 +1086,17 @@
         </div>
         <p class="editor-hint" id="theme-status"></p>
       </div>
+      <div class="theme-box font-box" id="font-box">
+        <div class="theme-head">
+          <h3>字体</h3>
+          <p class="editor-hint">为各文字模块选择字体和大小。改动会立刻显示；写入云端后，其他设备刷新也会看到。</p>
+        </div>
+        <div id="font-fields"></div>
+        <div class="slot-actions">
+          <button type="button" id="font-reset">恢复默认字体</button>
+        </div>
+        <p class="editor-hint" id="font-status"></p>
+      </div>
       <div class="pw-change">
         <button type="button" id="ed-pw-toggle">更改密码</button>
         <form id="ed-pw-form" hidden>
@@ -1080,6 +1166,29 @@
         { id: "blue", label: "蓝色", colors: { bg: "#0e1a2b", textArea: "#15283f", text: "#e7f1fb", muted: "#8eabc4", hero: "#16324c", chip: "#1d3d5c", border: "#2d5276", accent: "#7eb6e8", editBtn: "#16324c", playBtn: "#16324c" } },
         { id: "black", label: "黑色", colors: { bg: "#000000", textArea: "#0a0a0a", text: "#f4f4f4", muted: "#8d8d8d", hero: "#050505", chip: "#141414", border: "#2b2b2b", accent: "#d0d0d0", editBtn: "#0a0a0a", playBtn: "#0a0a0a" } }
       ];
+      const FONT_STACKS = [
+        { id: "sans", label: "黑体", stack: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif' },
+        { id: "serif", label: "宋体", stack: '"Noto Serif SC", "Songti SC", "SimSun", serif' },
+        { id: "brush", label: "书法", stack: '"Ma Shan Zheng", "KaiTi", "STKaiti", cursive' },
+        { id: "system", label: "系统", stack: 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif' },
+        { id: "mono", label: "等宽", stack: 'ui-monospace, "Sarasa Mono SC", "Noto Sans SC", monospace' }
+      ];
+      const FONT_ROLES = [
+        { key: "body", label: "页面正文", group: "页面与诗文", family: "--font-body", size: "--size-body" },
+        { key: "title", label: "诗题", group: "页面与诗文", family: "--font-title", size: "--size-title" },
+        { key: "verse", label: "诗句", group: "页面与诗文", family: "--font-verse", size: "--size-verse" },
+        { key: "heading", label: "介绍标题", group: "介绍", family: "--font-heading", size: "--size-heading" },
+        { key: "desc", label: "介绍正文", group: "介绍", family: "--font-desc", size: "--size-desc" },
+        { key: "ui", label: "标签与按钮", group: "界面", family: "--font-ui", size: "--size-ui" }
+      ];
+      const FONT_DEFAULTS = {
+        body: { family: "sans", size: 1 },
+        title: { family: "brush", size: 2.15 },
+        verse: { family: "serif", size: 1.05 },
+        heading: { family: "serif", size: 1.15 },
+        desc: { family: "sans", size: 0.93 },
+        ui: { family: "sans", size: 0.8 }
+      };
       let remoteEditHash = "";
       let editAuthLoaded = Promise.resolve();
 
@@ -2256,7 +2365,17 @@
       }
 
       function saveThemeLocal(colors) {
-        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ colors: colors }));
+        const rec = readThemeRecord();
+        rec.colors = colors;
+        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(rec));
+      }
+
+      function readThemeRecord() {
+        try {
+          return JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || "{}") || {};
+        } catch (e) {
+          return {};
+        }
       }
 
       function loadThemeLocal() {
@@ -2275,14 +2394,17 @@
         el.style.color = isErr ? "#e08b8b" : "var(--muted)";
       }
 
-      async function publishThemeColors(colors) {
-        saveThemeLocal(colors);
+      async function publishThemeRecord() {
+        const rec = readThemeRecord();
         const cfg = readOssForm();
         if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
           return { ok: false, skipped: true };
         }
+        const payload = {};
+        if (rec.colors) payload.colors = rec.colors;
+        if (rec.fonts) payload.fonts = rec.fonts;
         const key = (cfg.prefix || "") + "theme-colors.json";
-        const body = new Blob([JSON.stringify({ colors: colors })], { type: "application/json;charset=utf-8" });
+        const body = new Blob([JSON.stringify(payload)], { type: "application/json;charset=utf-8" });
         await putCosObject(createCosClient(cfg), cfg, key, body, "application/json;charset=utf-8");
         return { ok: true, url: publicUrl({ bucket: cfg.bucket, region: cfg.region, cdn: "" }, key) };
       }
@@ -2290,14 +2412,190 @@
       async function commitTheme(colors) {
         const applied = applyThemeColors(colors);
         paintThemeInputs(applied);
+        saveThemeLocal(applied);
         try {
-          const result = await publishThemeColors(applied);
+          const result = await publishThemeRecord();
           if (result.ok) setThemeStatus("配色已保存到本机，并写入 " + result.url + "。其他设备刷新后会看到。");
           else setThemeStatus("配色已保存在本机。未填写 COS 密钥时，其他设备仍使用云端或默认现有黑灰。");
         } catch (e) {
           const msg = (e && (e.message || e.error || e.Message)) || String(e);
           setThemeStatus("已保存在本机，但写入 COS 失败：" + msg, true);
         }
+      }
+
+      function fontStack(id) {
+        const found = FONT_STACKS.filter(function (item) { return item.id === id; })[0];
+        return found ? found.stack : FONT_STACKS[0].stack;
+      }
+
+      function clampFontSize(value) {
+        const n = Number(value);
+        if (!isFinite(n)) return null;
+        return Math.round(Math.min(3.5, Math.max(0.7, n)) * 100) / 100;
+      }
+
+      function sanitizeFonts(input) {
+        if (!input) return null;
+        const out = {};
+        let any = false;
+        FONT_ROLES.forEach(function (role) {
+          const item = input[role.key] || {};
+          const family = FONT_STACKS.some(function (stack) { return stack.id === item.family; }) ? item.family : FONT_DEFAULTS[role.key].family;
+          const size = clampFontSize(item.size);
+          if (item.family || item.size != null) any = true;
+          out[role.key] = { family: family, size: size == null ? FONT_DEFAULTS[role.key].size : size };
+        });
+        return any ? out : null;
+      }
+
+      function applyFonts(fonts) {
+        const clean = sanitizeFonts(fonts) || JSON.parse(JSON.stringify(FONT_DEFAULTS));
+        FONT_ROLES.forEach(function (role) {
+          document.documentElement.style.setProperty(role.family, fontStack(clean[role.key].family));
+          document.documentElement.style.setProperty(role.size, clean[role.key].size + "rem");
+        });
+        return clean;
+      }
+
+      function paintFontInputs(fonts) {
+        FONT_ROLES.forEach(function (role) {
+          const family = document.querySelector('[data-font-family="' + role.key + '"]');
+          const size = document.querySelector('[data-font-size="' + role.key + '"]');
+          if (family && document.activeElement !== family) family.value = fonts[role.key].family;
+          if (size && document.activeElement !== size) {
+            size.value = String(fonts[role.key].size);
+            size.classList.remove("is-invalid");
+          }
+        });
+      }
+
+      function readFontInputs() {
+        const fonts = {};
+        FONT_ROLES.forEach(function (role) {
+          const family = document.querySelector('[data-font-family="' + role.key + '"]');
+          const size = document.querySelector('[data-font-size="' + role.key + '"]');
+          const sizeValue = clampFontSize(size && size.value);
+          fonts[role.key] = {
+            family: family && FONT_STACKS.some(function (stack) { return stack.id === family.value; }) ? family.value : FONT_DEFAULTS[role.key].family,
+            size: sizeValue == null ? FONT_DEFAULTS[role.key].size : sizeValue
+          };
+        });
+        return fonts;
+      }
+
+      function saveFontsLocal(fonts) {
+        const rec = readThemeRecord();
+        rec.fonts = fonts;
+        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(rec));
+      }
+
+      function loadFontsLocal() {
+        return sanitizeFonts(readThemeRecord().fonts);
+      }
+
+      function setFontStatus(text, isErr) {
+        const el = document.getElementById("font-status");
+        if (!el) return;
+        el.textContent = text || "";
+        el.style.color = isErr ? "#e08b8b" : "var(--muted)";
+      }
+
+      async function commitFonts(fonts) {
+        const applied = applyFonts(fonts);
+        paintFontInputs(applied);
+        saveFontsLocal(applied);
+        try {
+          const result = await publishThemeRecord();
+          if (result.ok) setFontStatus("字体已保存到本机，并写入 " + result.url + "。其他设备刷新后会看到。");
+          else setFontStatus("字体已保存在本机。未填写 COS 密钥时，其他设备仍使用云端或默认字体。");
+        } catch (e) {
+          const msg = (e && (e.message || e.error || e.Message)) || String(e);
+          setFontStatus("已保存在本机，但写入 COS 失败：" + msg, true);
+        }
+      }
+
+      function setupFontUI() {
+        const fields = document.getElementById("font-fields");
+        const groups = [];
+        FONT_ROLES.forEach(function (role) {
+          let group = groups.filter(function (item) { return item.name === role.group; })[0];
+          if (!group) {
+            group = { name: role.group, roles: [] };
+            groups.push(group);
+          }
+          group.roles.push(role);
+        });
+        groups.forEach(function (group) {
+          const section = document.createElement("section");
+          section.className = "theme-group";
+          const title = document.createElement("h4");
+          title.textContent = group.name;
+          section.appendChild(title);
+          group.roles.forEach(function (role) {
+            const row = document.createElement("div");
+            row.className = "theme-row font-row";
+            const name = document.createElement("span");
+            name.className = "name";
+            name.textContent = role.label;
+            const family = document.createElement("select");
+            family.className = "font-family";
+            family.setAttribute("data-font-family", role.key);
+            family.setAttribute("aria-label", role.label + " 字体");
+            FONT_STACKS.forEach(function (stack) {
+              const opt = document.createElement("option");
+              opt.value = stack.id;
+              opt.textContent = stack.label;
+              family.appendChild(opt);
+            });
+            family.value = FONT_DEFAULTS[role.key].family;
+            family.addEventListener("change", function () { commitFonts(readFontInputs()); });
+            const size = document.createElement("input");
+            size.type = "number";
+            size.className = "font-size";
+            size.setAttribute("data-font-size", role.key);
+            size.setAttribute("aria-label", role.label + " 字号");
+            size.min = "0.7";
+            size.max = "3.5";
+            size.step = "0.05";
+            size.value = String(FONT_DEFAULTS[role.key].size);
+            size.addEventListener("input", function () {
+              const nextSize = clampFontSize(size.value);
+              if (nextSize == null) {
+                size.classList.add("is-invalid");
+                return;
+              }
+              size.classList.remove("is-invalid");
+              const next = readFontInputs();
+              next[role.key].size = nextSize;
+              applyFonts(next);
+              saveFontsLocal(next);
+            });
+            size.addEventListener("change", function () {
+              if (clampFontSize(size.value) == null) {
+                size.classList.add("is-invalid");
+                const prev = loadFontsLocal() || FONT_DEFAULTS;
+                size.value = String((prev[role.key] || FONT_DEFAULTS[role.key]).size);
+                return;
+              }
+              commitFonts(readFontInputs());
+            });
+            const unit = document.createElement("span");
+            unit.className = "font-unit";
+            unit.textContent = "rem";
+            row.appendChild(name);
+            row.appendChild(family);
+            row.appendChild(size);
+            row.appendChild(unit);
+            section.appendChild(row);
+          });
+          fields.appendChild(section);
+        });
+        document.getElementById("font-reset").addEventListener("click", function () {
+          commitFonts(FONT_DEFAULTS);
+        });
+        const local = loadFontsLocal();
+        paintFontInputs(local || FONT_DEFAULTS);
+        if (local) applyFonts(local);
       }
 
       function setupThemeUI() {
@@ -2402,11 +2700,18 @@
           const res = await fetch(url, { cache: "no-store" });
           if (!res.ok) return;
           const data = await res.json();
-          const colors = sanitizeThemeColors(data && (data.colors || data));
-          if (!colors) return;
-          applyThemeColors(colors);
-          paintThemeInputs(colors);
-          saveThemeLocal(colors);
+          const colors = sanitizeThemeColors(data && data.colors);
+          const fonts = sanitizeFonts(data && data.fonts);
+          if (colors) {
+            applyThemeColors(colors);
+            paintThemeInputs(colors);
+            saveThemeLocal(colors);
+          }
+          if (fonts) {
+            applyFonts(fonts);
+            paintFontInputs(fonts);
+            saveFontsLocal(fonts);
+          }
         } catch (e) {
           console.warn("theme fetch failed", e && e.message);
         }
@@ -2469,6 +2774,7 @@
       }
 
       setupThemeUI();
+      setupFontUI();
       boot();
     })();
   </script>
