@@ -11,12 +11,18 @@
   <style>
     :root {
       --bg: #121212;
-      --card: #1e1e1e;
-      --card-elevated: #252525;
-      --border: rgba(255, 255, 255, 0.08);
+      --text-area: #1a1a1a;
       --text: #f0f0f0;
       --muted: #9a9a9a;
       --accent: #c4a574;
+      --hero: #1a1a1a;
+      --chip: #252525;
+      --border-color: #2a2a2a;
+      --edit-btn: #1e1e1e;
+      --play-btn: #1e1e1e;
+      --card: var(--chip);
+      --card-elevated: var(--chip);
+      --border: var(--border-color);
       --radius: 18px;
       --radius-sm: 12px;
       --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
@@ -47,8 +53,8 @@
         max(1.5rem, var(--safe-bottom))
         max(1rem, var(--safe-left));
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(80, 70, 50, 0.18), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(40, 50, 60, 0.12), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in srgb, var(--hero) 28%, transparent), transparent);
     }
 
     .wrap {
@@ -71,9 +77,9 @@
       overflow: hidden; /* keep vinyl inside card, never clipped by page */
       padding: clamp(1.1rem, 3.5vw, 2rem) clamp(0.85rem, 3vw, 1.5rem) clamp(1.35rem, 3.5vw, 2rem);
       background:
-        radial-gradient(ellipse 70% 80% at 78% 48%, rgba(255,255,255,0.05), transparent 55%),
-        linear-gradient(160deg, #2a2a2a 0%, #1a1a1a 45%, #151515 100%);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+        radial-gradient(ellipse 70% 80% at 78% 48%, color-mix(in srgb, white 6%, transparent), transparent 55%),
+        linear-gradient(160deg, color-mix(in srgb, var(--hero) 92%, white) 0%, var(--hero) 45%, color-mix(in srgb, var(--hero) 82%, black) 100%);
+      border: 1px solid var(--border-color);
       border-radius: calc(var(--radius) + 4px);
       box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);
     }
@@ -150,8 +156,8 @@
       height: 100%;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.16), transparent 42%),
-        radial-gradient(circle at center, #2a2a2a 0 14%, #161616 28%, #0f0f0f 40%, #1c1c1c 55%, #121212 72%, #0c0c0c 100%);
+        radial-gradient(circle at 32% 28%, color-mix(in srgb, white 16%, transparent), transparent 42%),
+        radial-gradient(circle at center, color-mix(in srgb, var(--hero) 78%, white) 0 14%, var(--hero) 28%, color-mix(in srgb, var(--hero) 70%, black) 55%, color-mix(in srgb, var(--hero) 45%, black) 100%);
       border: 1px solid rgba(255, 255, 255, 0.28);
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.1),
@@ -197,8 +203,8 @@
       inset: 30%;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid rgba(220, 200, 160, 0.55);
-      box-shadow: 0 0 0 5px #1a1a1a, 0 0 0 6px rgba(255,255,255,0.12), inset 0 0 12px rgba(0, 0, 0, 0.5);
+      border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+      box-shadow: 0 0 0 5px var(--hero), 0 0 0 6px color-mix(in srgb, white 12%, transparent), inset 0 0 12px rgba(0, 0, 0, 0.5);
     }
 
     .vinyl-label img {
@@ -212,7 +218,7 @@
       position: absolute;
       inset: 46.5%;
       border-radius: 50%;
-      background: #0a0a0a;
+      background: color-mix(in srgb, var(--hero) 35%, black);
       box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.8);
       z-index: 2;
     }
@@ -301,14 +307,14 @@
     }
 
     .thumb.active {
-      border-color: #fff;
+      border-color: var(--text);
       box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(0, 0, 0, 0.4);
     }
 
     /* —— POEM —— */
     .poem-card {
-      background: linear-gradient(160deg, #222 0%, #1a1a1a 50%, #1e1e1e 100%);
-      border: 1px solid var(--border);
+      background: linear-gradient(160deg, color-mix(in srgb, var(--text-area) 88%, white) 0%, var(--text-area) 100%);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius);
       padding: clamp(1.5rem, 4vw, 2.5rem);
       text-align: center;
@@ -321,7 +327,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(196, 165, 116, 0.06), transparent 55%);
+      background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%);
       pointer-events: none;
     }
 
@@ -330,7 +336,7 @@
       font-size: clamp(1.75rem, 5vw, 2.5rem);
       font-weight: 400;
       letter-spacing: 0.12em;
-      color: #f5f0e8;
+      color: var(--text);
       margin-bottom: 0.35rem;
       position: relative;
     }
@@ -346,7 +352,7 @@
     .poem-verse {
       font-family: "Noto Serif SC", serif;
       font-size: clamp(0.95rem, 2.5vw, 1.15rem);
-      color: #d8d4cc;
+      color: color-mix(in srgb, var(--text) 78%, var(--muted));
       line-height: 2;
       letter-spacing: 0.06em;
       position: relative;
@@ -375,11 +381,11 @@
       display: inline-flex;
       align-items: center;
       padding: 0.28rem 0.6rem;
-      background: var(--card-elevated);
-      border: 1px solid var(--border);
+      background: var(--chip);
+      border: 1px solid var(--border-color);
       border-radius: 999px;
       font-size: clamp(0.68rem, 1.7vw, 0.75rem);
-      color: #cfcfcf;
+      color: var(--text);
     }
 
     .pills {
@@ -394,19 +400,19 @@
       align-items: center;
       gap: 0.3rem;
       padding: 0.35rem 0.7rem;
-      background: var(--card-elevated);
-      border: 1px solid var(--border);
+      background: var(--chip);
+      border: 1px solid var(--border-color);
       border-radius: 999px;
       font-size: clamp(0.7rem, 1.8vw, 0.78rem);
-      color: #cfcfcf;
+      color: var(--text);
     }
     .meta-info[hidden],
     .pill[hidden] { display: none; }
 
     /* —— DESC —— */
     .desc-card {
-      background: linear-gradient(145deg, #1e1e1e, #191919);
-      border: 1px solid var(--border);
+      background: linear-gradient(145deg, var(--text-area), color-mix(in srgb, var(--text-area) 88%, black));
+      border: 1px solid var(--border-color);
       border-radius: var(--radius);
       padding: clamp(1.25rem, 3.5vw, 2rem);
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
@@ -417,7 +423,7 @@
       font-size: clamp(1.05rem, 2.5vw, 1.25rem);
       font-weight: 600;
       margin-bottom: 0.75rem;
-      color: #eee;
+      color: var(--text);
       letter-spacing: 0.04em;
     }
 
@@ -438,7 +444,7 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.45rem 1.1rem;
-      background: rgba(30, 30, 30, 0.92);
+      background: var(--play-btn);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(196, 165, 116, 0.35);
@@ -520,8 +526,8 @@
       bottom: max(1.25rem, var(--safe-bottom));
       left: max(1.25rem, var(--safe-left));
       z-index: 60;
-      border: 1px solid var(--border);
-      background: rgba(30,30,30,0.9);
+      border: 1px solid var(--border-color);
+      background: var(--edit-btn);
       color: var(--text);
       border-radius: 999px;
       padding: 0.45rem 0.9rem;
@@ -714,7 +720,36 @@
       pointer-events: auto;
     }
 
+    .theme-presets,
+    .theme-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .theme-fields label { flex: 1 1 9.5rem; }
+    .theme-fields input[type="color"] {
+      width: 100%;
+      height: 2.1rem;
+      padding: 0.15rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #101010;
+    }
   </style>
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem("mountain-echo-theme-colors");
+        var data = raw && JSON.parse(raw);
+        var colors = data && data.colors;
+        var map = { bg: "--bg", textArea: "--text-area", text: "--text", muted: "--muted", hero: "--hero", chip: "--chip", border: "--border-color", accent: "--accent", editBtn: "--edit-btn", playBtn: "--play-btn" };
+        if (!colors) return;
+        Object.keys(map).forEach(function (key) {
+          if (/^#[0-9a-fA-F]{6}$/.test(colors[key] || "")) document.documentElement.style.setProperty(map[key], colors[key]);
+        });
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <main class="wrap">
@@ -866,6 +901,15 @@
         </label>
       </details>
       <p class="editor-hint" id="cloud-status">未连接云端。若本机已保存 Region 与 Bucket，刷新后会优先读取 COS 上的 gallery.json（公开读，不需要密钥）；否则读取同目录 gallery.json。</p>
+      <div class="theme-box" id="theme-box">
+        <p class="editor-hint">模块配色。选预设会一次填好各模块，之后仍可单独微调。访客刷新后若已写入云端，会看到同一套颜色。</p>
+        <div class="theme-presets" id="theme-presets"></div>
+        <div class="theme-fields" id="theme-fields"></div>
+        <div class="slot-actions">
+          <button type="button" id="theme-reset">恢复默认配色</button>
+        </div>
+        <p class="editor-hint" id="theme-status"></p>
+      </div>
       <div class="pw-change">
         <button type="button" id="ed-pw-toggle">更改密码</button>
         <form id="ed-pw-form" hidden>
@@ -915,6 +959,26 @@
       const EDIT_PASSWORD_SHA256 = "7175d41e052114d7e66372dbe3889f00cc8dbc9f2f05a9bf10dc98b9bc8029f5";
       const EDIT_UNLOCK_KEY = "mountain-echo-edit-unlocked";
       const EDIT_AUTH_STORAGE_KEY = "mountain-echo-edit-sha256";
+      const THEME_STORAGE_KEY = "mountain-echo-theme-colors";
+      const THEME_FIELDS = [
+        { key: "bg", css: "--bg", label: "页面背景" },
+        { key: "textArea", css: "--text-area", label: "文字区域背景" },
+        { key: "text", css: "--text", label: "字体颜色" },
+        { key: "muted", css: "--muted", label: "次要文字" },
+        { key: "hero", css: "--hero", label: "主图卡片" },
+        { key: "chip", css: "--chip", label: "标签与胶囊" },
+        { key: "border", css: "--border-color", label: "边框" },
+        { key: "accent", css: "--accent", label: "强调色" },
+        { key: "editBtn", css: "--edit-btn", label: "编辑按钮" },
+        { key: "playBtn", css: "--play-btn", label: "播放按钮" }
+      ];
+      const THEME_CHARCOAL = { bg: "#121212", textArea: "#1a1a1a", text: "#f0f0f0", muted: "#9a9a9a", hero: "#1a1a1a", chip: "#252525", border: "#2a2a2a", accent: "#c4a574", editBtn: "#1e1e1e", playBtn: "#1e1e1e" };
+      const THEME_PRESETS = [
+        { id: "charcoal", label: "现有黑灰", colors: THEME_CHARCOAL },
+        { id: "white", label: "白色", colors: { bg: "#f6f3ee", textArea: "#ffffff", text: "#1c1916", muted: "#6f675e", hero: "#fffdf9", chip: "#efe8de", border: "#e0d8cc", accent: "#8d5e32", editBtn: "#ffffff", playBtn: "#ffffff" } },
+        { id: "blue", label: "蓝色", colors: { bg: "#0e1a2b", textArea: "#15283f", text: "#e7f1fb", muted: "#8eabc4", hero: "#16324c", chip: "#1d3d5c", border: "#2d5276", accent: "#7eb6e8", editBtn: "#16324c", playBtn: "#16324c" } },
+        { id: "black", label: "黑色", colors: { bg: "#000000", textArea: "#0a0a0a", text: "#f4f4f4", muted: "#8d8d8d", hero: "#050505", chip: "#141414", border: "#2b2b2b", accent: "#d0d0d0", editBtn: "#0a0a0a", playBtn: "#0a0a0a" } }
+      ];
       let remoteEditHash = "";
       let editAuthLoaded = Promise.resolve();
 
@@ -1849,6 +1913,20 @@
         }, prefix + "edit-auth.json");
       }
 
+      function themeColorsUrl(cfg) {
+        const src = cfg || {};
+        const bucket = String(src.bucket || "").trim() || PUBLIC_COS.bucket;
+        const region = normalizeCosRegion(src.region) || PUBLIC_COS.region;
+        const prefix = normalizePrefix(src.prefix);
+        if (!bucket || !region) return "";
+        return publicUrl({
+          bucket: bucket,
+          region: region,
+          cdn: "",
+          prefix: prefix
+        }, prefix + "theme-colors.json");
+      }
+
       function createCosClient(cfg) {
         if (!window.COS) throw new Error("COS SDK 未加载");
         if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
@@ -2005,9 +2083,149 @@
         return mergeGallery(parsed);
       }
 
+      function normalizeThemeHex(value) {
+        const s = String(value || "").trim();
+        return /^#[0-9a-fA-F]{6}$/.test(s) ? s.toLowerCase() : "";
+      }
+
+      function sanitizeThemeColors(input) {
+        if (!input) return null;
+        const out = {};
+        let any = false;
+        THEME_FIELDS.forEach(function (field) {
+          const hex = normalizeThemeHex(input[field.key]);
+          if (hex) any = true;
+          out[field.key] = hex || THEME_CHARCOAL[field.key];
+        });
+        return any ? out : null;
+      }
+
+      function applyThemeColors(colors) {
+        const clean = sanitizeThemeColors(colors) || Object.assign({}, THEME_CHARCOAL);
+        THEME_FIELDS.forEach(function (field) {
+          document.documentElement.style.setProperty(field.css, clean[field.key]);
+        });
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", clean.bg);
+        return clean;
+      }
+
+      function paintThemeInputs(colors) {
+        THEME_FIELDS.forEach(function (field) {
+          const input = document.querySelector('[data-theme-key="' + field.key + '"]');
+          if (input) input.value = colors[field.key];
+        });
+      }
+
+      function readThemeInputs() {
+        const colors = {};
+        THEME_FIELDS.forEach(function (field) {
+          const input = document.querySelector('[data-theme-key="' + field.key + '"]');
+          colors[field.key] = normalizeThemeHex(input && input.value) || THEME_CHARCOAL[field.key];
+        });
+        return colors;
+      }
+
+      function saveThemeLocal(colors) {
+        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ colors: colors }));
+      }
+
+      function loadThemeLocal() {
+        try {
+          const data = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || "null");
+          return sanitizeThemeColors(data && data.colors);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function setThemeStatus(text, isErr) {
+        const el = document.getElementById("theme-status");
+        if (!el) return;
+        el.textContent = text || "";
+        el.style.color = isErr ? "#f0b0b0" : "#777";
+      }
+
+      async function publishThemeColors(colors) {
+        saveThemeLocal(colors);
+        const cfg = readOssForm();
+        if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
+          return { ok: false, skipped: true };
+        }
+        const key = (cfg.prefix || "") + "theme-colors.json";
+        const body = new Blob([JSON.stringify({ colors: colors })], { type: "application/json;charset=utf-8" });
+        await putCosObject(createCosClient(cfg), cfg, key, body, "application/json;charset=utf-8");
+        return { ok: true, url: publicUrl({ bucket: cfg.bucket, region: cfg.region, cdn: "" }, key) };
+      }
+
+      async function commitTheme(colors) {
+        const applied = applyThemeColors(colors);
+        paintThemeInputs(applied);
+        try {
+          const result = await publishThemeColors(applied);
+          if (result.ok) setThemeStatus("配色已保存到本机，并写入 " + result.url + "。其他设备刷新后会看到。");
+          else setThemeStatus("配色已保存在本机。未填写 COS 密钥时，其他设备仍使用云端或默认现有黑灰。");
+        } catch (e) {
+          const msg = (e && (e.message || e.error || e.Message)) || String(e);
+          setThemeStatus("已保存在本机，但写入 COS 失败：" + msg, true);
+        }
+      }
+
+      function setupThemeUI() {
+        const presets = document.getElementById("theme-presets");
+        const fields = document.getElementById("theme-fields");
+        THEME_PRESETS.forEach(function (preset) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.textContent = preset.label;
+          btn.addEventListener("click", function () { commitTheme(preset.colors); });
+          presets.appendChild(btn);
+        });
+        THEME_FIELDS.forEach(function (field) {
+          const label = document.createElement("label");
+          label.appendChild(document.createTextNode(field.label));
+          const input = document.createElement("input");
+          input.type = "color";
+          input.setAttribute("data-theme-key", field.key);
+          input.value = THEME_CHARCOAL[field.key];
+          input.addEventListener("input", function () {
+            const next = readThemeInputs();
+            applyThemeColors(next);
+            saveThemeLocal(next);
+          });
+          input.addEventListener("change", function () { commitTheme(readThemeInputs()); });
+          label.appendChild(input);
+          fields.appendChild(label);
+        });
+        document.getElementById("theme-reset").addEventListener("click", function () {
+          commitTheme(THEME_CHARCOAL);
+        });
+        const local = loadThemeLocal();
+        paintThemeInputs(local || THEME_CHARCOAL);
+        if (local) applyThemeColors(local);
+      }
+
+      async function refreshRemoteTheme() {
+        const url = themeColorsUrl(loadOssConfig());
+        if (!url) return;
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          const colors = sanitizeThemeColors(data && (data.colors || data));
+          if (!colors) return;
+          applyThemeColors(colors);
+          paintThemeInputs(colors);
+          saveThemeLocal(colors);
+        } catch (e) {
+          console.warn("theme fetch failed", e && e.message);
+        }
+      }
+
       async function boot() {
         fillOssForm();
         editAuthLoaded = refreshRemoteEditHash();
+        refreshRemoteTheme();
         const cfg = loadOssConfig();
         const remoteUrl = cosGalleryUrl(cfg);
         let loaded = false;
@@ -2060,6 +2278,7 @@
         applyItem(0, { restartAudio: false });
       }
 
+      setupThemeUI();
       boot();
     })();
   </script>
