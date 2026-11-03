@@ -720,20 +720,95 @@
       pointer-events: auto;
     }
 
-    .theme-presets,
-    .theme-fields {
+    .theme-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding: 0.85rem 0.8rem 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background:
+        radial-gradient(ellipse 80% 50% at 0% 0%, rgba(196, 165, 116, 0.08), transparent 55%),
+        #141414;
+    }
+    .theme-head h3 {
+      margin: 0 0 0.3rem;
+      font-family: "Noto Serif SC", serif;
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    .theme-presets {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
+      gap: 0.4rem;
     }
-    .theme-fields label { flex: 1 1 9.5rem; }
-    .theme-fields input[type="color"] {
-      width: 100%;
-      height: 2.1rem;
-      padding: 0.15rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    .theme-presets button {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #1c1c1c;
+      color: #d8d4cc;
+      border-radius: 999px;
+      padding: 0.4rem 0.78rem;
+      font: 500 0.75rem/1 "Noto Sans SC", sans-serif;
+      cursor: pointer;
+    }
+    .theme-presets button.is-active {
+      background: linear-gradient(135deg, #3a3428, #2a241c);
+      border-color: rgba(196, 165, 116, 0.65);
+      color: #f3e6c8;
+      box-shadow: inset 0 0 0 1px rgba(196, 165, 116, 0.25);
+    }
+    .theme-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .theme-group h4 {
+      margin: 0.2rem 0 0;
+      font: 500 0.7rem/1 "Noto Sans SC", sans-serif;
+      letter-spacing: 0.12em;
+      color: #8d8d8d;
+    }
+    .editor label.theme-row {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0.42rem 0.55rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
       background: #101010;
+      font-size: 0.78rem;
+      color: #e6e2da;
+    }
+    .theme-row .name { flex: 1; min-width: 0; }
+    .theme-swatch {
+      position: relative;
+      width: 2.55rem;
+      height: 1.55rem;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    }
+    .theme-swatch input[type="color"] {
+      position: absolute;
+      inset: -30%;
+      width: 160%;
+      height: 160%;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+    .theme-hex {
+      flex: 0 0 auto;
+      min-width: 4.5rem;
+      font: 500 0.7rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0.04em;
+      color: #b9b9b9;
+      text-transform: uppercase;
     }
   </style>
   <script>
@@ -902,9 +977,12 @@
       </details>
       <p class="editor-hint" id="cloud-status">未连接云端。若本机已保存 Region 与 Bucket，刷新后会优先读取 COS 上的 gallery.json（公开读，不需要密钥）；否则读取同目录 gallery.json。</p>
       <div class="theme-box" id="theme-box">
-        <p class="editor-hint">模块配色。选预设会一次填好各模块，之后仍可单独微调。访客刷新后若已写入云端，会看到同一套颜色。</p>
-        <div class="theme-presets" id="theme-presets"></div>
-        <div class="theme-fields" id="theme-fields"></div>
+        <div class="theme-head">
+          <h3>模块配色</h3>
+          <p class="editor-hint">先选一套预设，再按模块微调。写入云端后，其他设备刷新会看到同一套颜色。</p>
+        </div>
+        <div class="theme-presets" id="theme-presets" role="group" aria-label="配色预设"></div>
+        <div id="theme-fields"></div>
         <div class="slot-actions">
           <button type="button" id="theme-reset">恢复默认配色</button>
         </div>
@@ -961,16 +1039,16 @@
       const EDIT_AUTH_STORAGE_KEY = "mountain-echo-edit-sha256";
       const THEME_STORAGE_KEY = "mountain-echo-theme-colors";
       const THEME_FIELDS = [
-        { key: "bg", css: "--bg", label: "页面背景" },
-        { key: "textArea", css: "--text-area", label: "文字区域背景" },
-        { key: "text", css: "--text", label: "字体颜色" },
-        { key: "muted", css: "--muted", label: "次要文字" },
-        { key: "hero", css: "--hero", label: "主图卡片" },
-        { key: "chip", css: "--chip", label: "标签与胶囊" },
-        { key: "border", css: "--border-color", label: "边框" },
-        { key: "accent", css: "--accent", label: "强调色" },
-        { key: "editBtn", css: "--edit-btn", label: "编辑按钮" },
-        { key: "playBtn", css: "--play-btn", label: "播放按钮" }
+        { key: "bg", css: "--bg", label: "页面背景", group: "页面与文字" },
+        { key: "textArea", css: "--text-area", label: "文字区域背景", group: "页面与文字" },
+        { key: "text", css: "--text", label: "字体颜色", group: "页面与文字" },
+        { key: "muted", css: "--muted", label: "次要文字", group: "页面与文字" },
+        { key: "hero", css: "--hero", label: "主图卡片", group: "画面" },
+        { key: "chip", css: "--chip", label: "标签与胶囊", group: "画面" },
+        { key: "border", css: "--border-color", label: "边框", group: "画面" },
+        { key: "accent", css: "--accent", label: "强调色", group: "按钮" },
+        { key: "editBtn", css: "--edit-btn", label: "编辑按钮", group: "按钮" },
+        { key: "playBtn", css: "--play-btn", label: "播放按钮", group: "按钮" }
       ];
       const THEME_CHARCOAL = { bg: "#121212", textArea: "#1a1a1a", text: "#f0f0f0", muted: "#9a9a9a", hero: "#1a1a1a", chip: "#252525", border: "#2a2a2a", accent: "#c4a574", editBtn: "#1e1e1e", playBtn: "#1e1e1e" };
       const THEME_PRESETS = [
@@ -2110,10 +2188,25 @@
         return clean;
       }
 
+      function themeSignature(colors) {
+        return THEME_FIELDS.map(function (field) { return colors[field.key]; }).join(",");
+      }
+
       function paintThemeInputs(colors) {
         THEME_FIELDS.forEach(function (field) {
           const input = document.querySelector('[data-theme-key="' + field.key + '"]');
+          const hex = document.querySelector('[data-theme-hex="' + field.key + '"]');
           if (input) input.value = colors[field.key];
+          if (hex) hex.textContent = String(colors[field.key] || "").toUpperCase();
+        });
+        const sig = themeSignature(colors);
+        document.querySelectorAll("[data-theme-preset]").forEach(function (btn) {
+          const preset = THEME_PRESETS.filter(function (item) {
+            return item.id === btn.getAttribute("data-theme-preset");
+          })[0];
+          const on = !!(preset && themeSignature(preset.colors) === sig);
+          btn.classList.toggle("is-active", on);
+          btn.setAttribute("aria-pressed", on ? "true" : "false");
         });
       }
 
@@ -2178,24 +2271,57 @@
           const btn = document.createElement("button");
           btn.type = "button";
           btn.textContent = preset.label;
+          btn.setAttribute("data-theme-preset", preset.id);
+          btn.setAttribute("aria-pressed", "false");
           btn.addEventListener("click", function () { commitTheme(preset.colors); });
           presets.appendChild(btn);
         });
+        const groups = [];
         THEME_FIELDS.forEach(function (field) {
-          const label = document.createElement("label");
-          label.appendChild(document.createTextNode(field.label));
-          const input = document.createElement("input");
-          input.type = "color";
-          input.setAttribute("data-theme-key", field.key);
-          input.value = THEME_CHARCOAL[field.key];
-          input.addEventListener("input", function () {
-            const next = readThemeInputs();
-            applyThemeColors(next);
-            saveThemeLocal(next);
+          let group = groups.filter(function (item) { return item.name === field.group; })[0];
+          if (!group) {
+            group = { name: field.group, fields: [] };
+            groups.push(group);
+          }
+          group.fields.push(field);
+        });
+        groups.forEach(function (group) {
+          const section = document.createElement("section");
+          section.className = "theme-group";
+          const title = document.createElement("h4");
+          title.textContent = group.name;
+          section.appendChild(title);
+          group.fields.forEach(function (field) {
+            const row = document.createElement("label");
+            row.className = "theme-row";
+            const name = document.createElement("span");
+            name.className = "name";
+            name.textContent = field.label;
+            const swatch = document.createElement("span");
+            swatch.className = "theme-swatch";
+            const input = document.createElement("input");
+            input.type = "color";
+            input.setAttribute("data-theme-key", field.key);
+            input.setAttribute("aria-label", field.label);
+            input.value = THEME_CHARCOAL[field.key];
+            input.addEventListener("input", function () {
+              const next = readThemeInputs();
+              applyThemeColors(next);
+              saveThemeLocal(next);
+              paintThemeInputs(next);
+            });
+            input.addEventListener("change", function () { commitTheme(readThemeInputs()); });
+            const hex = document.createElement("span");
+            hex.className = "theme-hex";
+            hex.setAttribute("data-theme-hex", field.key);
+            hex.textContent = THEME_CHARCOAL[field.key].toUpperCase();
+            swatch.appendChild(input);
+            row.appendChild(name);
+            row.appendChild(swatch);
+            row.appendChild(hex);
+            section.appendChild(row);
           });
-          input.addEventListener("change", function () { commitTheme(readThemeInputs()); });
-          label.appendChild(input);
-          fields.appendChild(label);
+          fields.appendChild(section);
         });
         document.getElementById("theme-reset").addEventListener("click", function () {
           commitTheme(THEME_CHARCOAL);
