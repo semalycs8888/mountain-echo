@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -32,6 +32,10 @@
       --size-desc: 0.93rem;
       --font-ui: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
       --size-ui: 0.8rem;
+      --font-bio-title: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --size-bio-title: 1.15rem;
+      --font-bio-text: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --size-bio-text: 0.93rem;
       --card: var(--chip);
       --card-elevated: var(--chip);
       --border: var(--border-color);
@@ -450,6 +454,52 @@
       letter-spacing: 0.02em;
     }
 
+
+    /* —— BIO / 个人简介 —— */
+    .bio-card {
+      background: linear-gradient(145deg, var(--text-area), color-mix(in srgb, var(--text-area) 88%, black));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: clamp(1.25rem, 3.5vw, 2rem);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+    .bio-card h2 {
+      font-family: var(--font-bio-title);
+      font-size: var(--size-bio-title);
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+    .bio-flow { overflow: hidden; }
+    .bio-img {
+      float: left;
+      width: clamp(7rem, 22vw, 10rem);
+      height: auto;
+      max-height: none;
+      object-fit: contain;
+      object-position: top left;
+      border-radius: var(--radius-sm);
+      margin: 0 1rem 0.65rem 0;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      display: block;
+      cursor: zoom-in;
+    }
+    .bio-img[hidden] { display: none; }
+    .bio-text {
+      font-family: var(--font-bio-text);
+      font-size: var(--size-bio-text);
+      color: var(--muted);
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .bio-text:empty::before {
+      content: "在编辑面板填写个人简介文字。";
+      opacity: 0.55;
+    }
     /* —— AUDIO FAB —— */
     .audio-fab {
       position: fixed;
@@ -910,7 +960,7 @@
           system: 'system-ui, "PingFang SC", "Microsoft YaHei", sans-serif',
           mono: 'ui-monospace, "Sarasa Mono SC", "Noto Sans SC", monospace'
         };
-        var roles = { body: ["--font-body", "--size-body"], title: ["--font-title", "--size-title"], verse: ["--font-verse", "--size-verse"], heading: ["--font-heading", "--size-heading"], desc: ["--font-desc", "--size-desc"], ui: ["--font-ui", "--size-ui"] };
+        var roles = { body: ["--font-body", "--size-body"], title: ["--font-title", "--size-title"], verse: ["--font-verse", "--size-verse"], heading: ["--font-heading", "--size-heading"], desc: ["--font-desc", "--size-desc"], ui: ["--font-ui", "--size-ui"], bioTitle: ["--font-bio-title", "--size-bio-title"], bioText: ["--font-bio-text", "--size-bio-text"] };
         if (fonts) {
           Object.keys(roles).forEach(function (role) {
             var item = fonts[role];
@@ -977,6 +1027,15 @@
         也留下缓慢、低沉的弦音——不是欢愉，是赶路人在雾里对自己轻声哼唱。
         这组画面捕捉的是那种安静而辽阔的孤寂：峰、水、岸、路，都在等待下一次日出。
       </p>
+    </section>
+
+    <!-- Bio -->
+    <section class="bio-card" id="bio-card" aria-label="个人简介">
+      <h2 id="bio-heading">个人简介</h2>
+      <div class="bio-flow">
+        <img class="bio-img" id="bio-img" src="assets/hero.jpg" alt="个人简介配图" />
+        <div class="bio-text" id="bio-text">在山与雾之间写字、拍照、听一段慢弦。这里放一段关于自己的话，图片在左上角，文字会绕着它铺满。</div>
+      </div>
     </section>
   </main>
 
@@ -1051,6 +1110,29 @@
         <button type="button" id="ed-audio-clear">清除背景曲</button>
       </div>
       <p class="editor-hint" id="ed-audio-name">未选择 MP3，播放时使用合成弦声。</p>
+      <div class="theme-box" id="bio-box">
+        <div class="theme-head">
+          <h3>个人简介</h3>
+          <p class="editor-hint">页面最下方模块跟「模块配色」（文字区域背景、字体颜色、次要文字、边框）和「字体 → 简介标题/简介正文」走。先本机预览，暂不推 GitHub。</p>
+        </div>
+        <label>标题
+          <input type="text" id="ed-bio-title" maxlength="40" value="个人简介" />
+        </label>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <img class="editor-preview" id="ed-bio-preview" src="assets/hero.jpg" alt="" />
+          <label class="file-btn">更换简介图片
+            <input type="file" id="ed-bio-file" accept="image/*" />
+          </label>
+        </div>
+        <label>简介正文
+          <textarea id="ed-bio-text" rows="6" placeholder="写下你的介绍…"></textarea>
+        </label>
+        <div class="slot-actions">
+          <button type="button" id="ed-bio-apply">应用到页面</button>
+          <button type="button" id="ed-bio-clear-img">清除图片</button>
+        </div>
+        <p class="editor-hint" id="bio-status"></p>
+      </div>
       <details class="oss-box" id="oss-box">
         <summary>腾讯云 COS 云端保存设置</summary>
         <p class="editor-hint">创建存储桶并开启静态网站后填写。Bucket 须带 AppId（如 mountain-echo-1250000000）。密钥仅存在本机浏览器；正式环境请改用 STS。</p>
@@ -1097,7 +1179,7 @@
         </div>
         <p class="editor-hint" id="font-status"></p>
       </div>
-      <div class="pw-change">
+            <div class="pw-change">
         <button type="button" id="ed-pw-toggle">更改密码</button>
         <form id="ed-pw-form" hidden>
           <p class="editor-hint">只保存 SHA-256，不保存明文。能读到网页或 COS 的人也能看到这个哈希，这不是严格的访问控制。本机本次已解锁时，当前密码可以留空。</p>
@@ -1147,6 +1229,13 @@
       const EDIT_UNLOCK_KEY = "mountain-echo-edit-unlocked";
       const EDIT_AUTH_STORAGE_KEY = "mountain-echo-edit-sha256";
       const THEME_STORAGE_KEY = "mountain-echo-theme-colors";
+      const BIO_STORAGE_KEY = "mountain-echo-bio-v1";
+      const DEFAULT_BIO = {
+        title: "个人简介",
+        text: "在山与雾之间写字、拍照、听一段慢弦。这里放一段关于自己的话，图片在左上角，文字会绕着它铺满。",
+        image: "assets/hero.jpg",
+        imageName: ""
+      };
       const THEME_FIELDS = [
         { key: "bg", css: "--bg", label: "页面背景", group: "页面与文字" },
         { key: "textArea", css: "--text-area", label: "文字区域背景", group: "页面与文字" },
@@ -1179,6 +1268,8 @@
         { key: "verse", label: "诗句", group: "页面与诗文", family: "--font-verse", size: "--size-verse" },
         { key: "heading", label: "介绍标题", group: "介绍", family: "--font-heading", size: "--size-heading" },
         { key: "desc", label: "介绍正文", group: "介绍", family: "--font-desc", size: "--size-desc" },
+        { key: "bioTitle", label: "简介标题", group: "个人简介", family: "--font-bio-title", size: "--size-bio-title" },
+        { key: "bioText", label: "简介正文", group: "个人简介", family: "--font-bio-text", size: "--size-bio-text" },
         { key: "ui", label: "标签与按钮", group: "界面", family: "--font-ui", size: "--size-ui" }
       ];
       const FONT_DEFAULTS = {
@@ -1187,6 +1278,8 @@
         verse: { family: "serif", size: 1.05 },
         heading: { family: "serif", size: 1.15 },
         desc: { family: "sans", size: 0.93 },
+        bioTitle: { family: "serif", size: 1.15 },
+        bioText: { family: "sans", size: 0.93 },
         ui: { family: "sans", size: 0.8 }
       };
       let remoteEditHash = "";
@@ -1309,9 +1402,11 @@
       const heroOverlay = document.getElementById("hero-overlay");
       const heroOverlayImg = document.getElementById("hero-overlay-img");
 
-      function openHeroOverlay() {
-        heroOverlayImg.src = heroImg.currentSrc || heroImg.src;
-        heroOverlayImg.alt = heroImg.alt || "";
+      function openHeroOverlay(sourceImg) {
+        const srcEl = sourceImg && sourceImg.tagName ? sourceImg : heroImg;
+        if (!srcEl || srcEl.hidden || !(srcEl.currentSrc || srcEl.src)) return;
+        heroOverlayImg.src = srcEl.currentSrc || srcEl.src;
+        heroOverlayImg.alt = srcEl.alt || "";
         heroOverlay.hidden = false;
         document.body.classList.add("hero-lock");
       }
@@ -1321,8 +1416,25 @@
         document.body.classList.remove("hero-lock");
       }
 
-      heroImg.addEventListener("click", openHeroOverlay);
+      heroImg.addEventListener("click", function () { openHeroOverlay(heroImg); });
       heroOverlay.addEventListener("click", closeHeroOverlay);
+      const bioImgEl = document.getElementById("bio-img");
+      if (bioImgEl) {
+        bioImgEl.style.cursor = "zoom-in";
+        bioImgEl.setAttribute("role", "button");
+        bioImgEl.setAttribute("tabindex", "0");
+        bioImgEl.setAttribute("title", "点击全屏查看");
+        bioImgEl.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          openHeroOverlay(bioImgEl);
+        });
+        bioImgEl.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            openHeroOverlay(bioImgEl);
+          }
+        });
+      }
       document.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape" && !heroOverlay.hidden) closeHeroOverlay();
       });
@@ -2387,6 +2499,135 @@
         }
       }
 
+
+      function setBioStatus(text, isErr) {
+        const el = document.getElementById("bio-status");
+        if (!el) return;
+        el.textContent = text || "";
+        el.style.color = isErr ? "#e08b8b" : "var(--muted)";
+      }
+
+      function readBioLocal() {
+        try {
+          const data = JSON.parse(localStorage.getItem(BIO_STORAGE_KEY) || "null");
+          if (!data || typeof data !== "object") return null;
+          return {
+            title: String(data.title || DEFAULT_BIO.title).slice(0, 40),
+            text: String(data.text != null ? data.text : DEFAULT_BIO.text),
+            image: String(data.image || DEFAULT_BIO.image),
+            imageName: String(data.imageName || ""),
+            pendingFile: null
+          };
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveBioLocal(bio) {
+        const payload = {
+          title: bio.title || DEFAULT_BIO.title,
+          text: bio.text != null ? bio.text : DEFAULT_BIO.text,
+          image: bio.image || DEFAULT_BIO.image,
+          imageName: bio.imageName || ""
+        };
+        localStorage.setItem(BIO_STORAGE_KEY, JSON.stringify(payload));
+      }
+
+      function applyBio(bio) {
+        const data = bio || readBioLocal() || DEFAULT_BIO;
+        const heading = document.getElementById("bio-heading");
+        const text = document.getElementById("bio-text");
+        const img = document.getElementById("bio-img");
+        if (heading) heading.textContent = data.title || DEFAULT_BIO.title;
+        if (text) text.textContent = data.text != null ? data.text : "";
+        if (img) {
+          if (data.image) {
+            img.hidden = false;
+            img.src = data.image;
+            img.alt = (data.title || "个人简介") + "配图";
+          } else {
+            img.hidden = true;
+            img.removeAttribute("src");
+          }
+        }
+        const titleInput = document.getElementById("ed-bio-title");
+        const textInput = document.getElementById("ed-bio-text");
+        const preview = document.getElementById("ed-bio-preview");
+        if (titleInput) titleInput.value = data.title || DEFAULT_BIO.title;
+        if (textInput) textInput.value = data.text != null ? data.text : "";
+        if (preview) preview.src = data.image || "assets/hero.jpg";
+        return data;
+      }
+
+      function collectBioFromForm() {
+        const titleInput = document.getElementById("ed-bio-title");
+        const textInput = document.getElementById("ed-bio-text");
+        const preview = document.getElementById("ed-bio-preview");
+        const current = readBioLocal() || Object.assign({}, DEFAULT_BIO);
+        return {
+          title: (titleInput && titleInput.value.trim()) || DEFAULT_BIO.title,
+          text: textInput ? textInput.value : "",
+          image: (preview && preview.getAttribute("src")) || current.image || "",
+          imageName: current.imageName || "",
+          pendingFile: window.__bioPendingFile || null
+        };
+      }
+
+      function setupBioUI() {
+        const file = document.getElementById("ed-bio-file");
+        const applyBtn = document.getElementById("ed-bio-apply");
+        const clearBtn = document.getElementById("ed-bio-clear-img");
+        if (file) {
+          file.addEventListener("change", function () {
+            const f = file.files && file.files[0];
+            if (!f) return;
+            if (f.size > 1.8 * 1024 * 1024) {
+              setBioStatus("图片超过约 1.8MB，本机预览可能偏大；可先压缩后再选。", true);
+            }
+            const reader = new FileReader();
+            reader.onload = function () {
+              const url = String(reader.result || "");
+              window.__bioPendingFile = f;
+              const preview = document.getElementById("ed-bio-preview");
+              if (preview) preview.src = url;
+              const live = document.getElementById("bio-img");
+              if (live) {
+                live.hidden = false;
+                live.src = url;
+              }
+              const bio = collectBioFromForm();
+              bio.image = url;
+              bio.imageName = f.name || "bio.jpg";
+              bio.pendingFile = f;
+              saveBioLocal(bio);
+              setBioStatus("已更新本机预览图（未推 GitHub）。");
+            };
+            reader.readAsDataURL(f);
+          });
+        }
+        if (applyBtn) {
+          applyBtn.addEventListener("click", function () {
+            const bio = collectBioFromForm();
+            applyBio(bio);
+            saveBioLocal(bio);
+            setBioStatus("个人简介已应用到本页，并保存在本机浏览器。");
+          });
+        }
+        if (clearBtn) {
+          clearBtn.addEventListener("click", function () {
+            window.__bioPendingFile = null;
+            const preview = document.getElementById("ed-bio-preview");
+            if (preview) preview.src = "assets/hero.jpg";
+            const bio = collectBioFromForm();
+            bio.image = "";
+            bio.imageName = "";
+            applyBio(bio);
+            saveBioLocal(bio);
+            setBioStatus("已清除简介图片。");
+          });
+        }
+        applyBio(readBioLocal() || DEFAULT_BIO);
+      }
       function setThemeStatus(text, isErr) {
         const el = document.getElementById("theme-status");
         if (!el) return;
@@ -2718,6 +2959,7 @@
       }
 
       async function boot() {
+        applyBio(readBioLocal() || DEFAULT_BIO);
         fillOssForm();
         editAuthLoaded = refreshRemoteEditHash();
         refreshRemoteTheme();
@@ -2775,6 +3017,7 @@
 
       setupThemeUI();
       setupFontUI();
+      setupBioUI();
       boot();
     })();
   </script>
