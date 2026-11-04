@@ -380,12 +380,24 @@
     /* —— TAGS (left module, above poem) —— */
     .tags-module {
       display: flex;
+      flex-direction: row;
       flex-wrap: wrap;
       gap: 0.5rem;
       align-items: center;
+      align-content: flex-start;
       margin: 0;
     }
     .tags-module[hidden] { display: none; }
+    .tag-group {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+      align-items: center;
+      max-width: 100%;
+    }
+    .tag-group .tag-chip {
+      flex: 0 0 auto;
+    }
 
     /* —— META (right pills stay below poem) —— */
     .meta-row {
@@ -1110,9 +1122,9 @@
         <input type="text" id="ed-track" maxlength="40" />
       </label>
       <label>左侧标签（古诗上方）
-        <input type="text" id="ed-tags" placeholder="摄影、正方形、风景、蓝调" />
+        <input type="text" id="ed-tags" placeholder="摄影 作品,正方形.风景,蓝调 夜色" />
       </label>
-      <p class="editor-hint">用逗号、顿号或空格分隔。显示在古诗模块上方；右侧分辨率/曲名胶囊位置不变。</p>
+      <p class="editor-hint">逗号分隔胶囊；句号是软换行点（够宽同一行，不够才从句号折行）；空格算内容。显示在古诗上方；右侧分辨率/曲名胶囊不变。</p>
       <label>分辨率
         <input type="text" id="ed-resolution" maxlength="40" placeholder="2048×2048" />
       </label>
@@ -1306,7 +1318,7 @@
       }
 
       DEFAULT_GALLERY.forEach(function (item) {
-        item.tags = ["摄影", "正方形", "风景", "蓝调"];
+        item.tags = [["摄影 作品", "正方形"], ["风景", "蓝调 夜色"]];
         item.resolution = "2048×2048";
       });
 
@@ -1334,14 +1346,58 @@
         return item;
       }
 
+
+      function applyPreviewTagDemo() {
+        try {
+          if (!/[?&]previewTags=1(?:&|$)/.test(String(location.search || ""))) return;
+          if (!GALLERY.length) return;
+          GALLERY[0].tags = [["摄影 作品", "正方形", "留白构图"], ["风景", "蓝调 夜色", "远山薄雾"]];
+          renderThumbs();
+          applyItem(0, { restartAudio: false });
+          setCloudStatus("本机预览：拉窄窗口看句号软换行；够宽会回到同一行");
+        } catch (e) { console.warn(e); }
+      }
+
+      function parseTagGroups(value) {
+        // Returns groups (句号分段); each group is comma-separated pills.
+        // Enough width: groups stay on one wrapping flex row.
+        // Not enough: flex-wrap breaks between groups (soft break at 句号).
+        if (Array.isArray(value)) {
+          if (!value.length) return [];
+          if (Array.isArray(value[0])) {
+            return value
+              .map(function (row) {
+                return (Array.isArray(row) ? row : [row])
+                  .map(function (part) { return String(part == null ? "" : part).trim(); })
+                  .filter(Boolean);
+              })
+              .filter(function (row) { return row.length; });
+          }
+          const flat = value
+            .map(function (part) { return String(part == null ? "" : part).trim(); })
+            .filter(Boolean);
+          return flat.length ? [flat] : [];
+        }
+        const text = String(value == null ? "" : value);
+        if (!String(text).trim()) return [];
+        return text.split(/[。.]+/).map(function (groupText) {
+          return String(groupText || "")
+            .split(/[,，]/)
+            .map(function (part) { return String(part || "").trim(); })
+            .filter(Boolean);
+        }).filter(function (group) { return group.length; });
+      }
+
       function normalizeTags(value) {
-        const parts = Array.isArray(value) ? value : String(value || "").split(/[,，、\s]+/);
-        const out = [];
-        parts.forEach(function (part) {
-          const tag = String(part || "").trim();
-          if (tag && out.indexOf(tag) === -1) out.push(tag);
-        });
-        return out;
+        return parseTagGroups(value);
+      }
+
+      function formatTagsForEditor(value) {
+        return parseTagGroups(value).map(function (group) { return group.join(","); }).join(".");
+      }
+
+      function countTags(value) {
+        return parseTagGroups(value).reduce(function (n, group) { return n + group.length; }, 0);
       }
 
       function formatResolution(value) {
@@ -1503,15 +1559,20 @@
       }
 
       function renderItemMeta(item) {
-        const tags = normalizeTags(item && item.tags);
+        const groups = parseTagGroups(item && item.tags);
         metaTags.replaceChildren();
-        tags.forEach(function (tag) {
-          const span = document.createElement("span");
-          span.className = "tag-chip";
-          span.textContent = tag;
-          metaTags.appendChild(span);
+        groups.forEach(function (group) {
+          const groupEl = document.createElement("div");
+          groupEl.className = "tag-group";
+          group.forEach(function (tag) {
+            const span = document.createElement("span");
+            span.className = "tag-chip";
+            span.textContent = tag;
+            groupEl.appendChild(span);
+          });
+          metaTags.appendChild(groupEl);
         });
-        metaTags.hidden = tags.length === 0;
+        metaTags.hidden = countTags(groups) === 0;
         const resolution = formatResolution(item && item.resolution);
         pillResolution.hidden = !resolution;
         pillResolution.textContent = resolution;
@@ -1873,7 +1934,7 @@
         edDescTitle.value = item.descTitle || "";
         edDesc.value = item.desc || "";
         edTrack.value = item.track || "";
-        edTags.value = normalizeTags(item.tags).join("、");
+        edTags.value = formatTagsForEditor(item.tags);
         edResolution.value = item.resolution || "";
         syncAudioHint();
       }
@@ -3200,6 +3261,8 @@
         renderThumbs();
         rebuildIndexOptions();
         applyItem(0, { restartAudio: false });
+        applyPreviewTagDemo();
+
       }
 
       setupThemeUI();
