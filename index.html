@@ -1113,7 +1113,7 @@
       <div class="theme-box" id="bio-box">
         <div class="theme-head">
           <h3>个人简介</h3>
-          <p class="editor-hint">页面最下方模块跟「模块配色」（文字区域背景、字体颜色、次要文字、边框）和「字体 → 简介标题/简介正文」走。先本机预览，暂不推 GitHub。</p>
+          <p class="editor-hint">页面最下方模块跟「模块配色」和「字体 → 简介标题/简介正文」走。点「应用到页面」先保存在本机；配置了 COS 密钥后点「保存到云端」写入 bio.json，其他设备刷新可见。</p>
         </div>
         <label>标题
           <input type="text" id="ed-bio-title" maxlength="40" value="个人简介" />
@@ -1129,6 +1129,7 @@
         </label>
         <div class="slot-actions">
           <button type="button" id="ed-bio-apply">应用到页面</button>
+          <button type="button" id="ed-bio-cloud">保存到云端</button>
           <button type="button" id="ed-bio-clear-img">清除图片</button>
         </div>
         <p class="editor-hint" id="bio-status"></p>
@@ -2249,6 +2250,20 @@
         }, prefix + "theme-colors.json");
       }
 
+      function bioJsonUrl(cfg) {
+        const src = cfg || {};
+        const bucket = String(src.bucket || "").trim() || PUBLIC_COS.bucket;
+        const region = normalizeCosRegion(src.region) || PUBLIC_COS.region;
+        const prefix = normalizePrefix(src.prefix);
+        if (!bucket || !region) return "";
+        return publicUrl({
+          bucket: bucket,
+          region: region,
+          cdn: "",
+          prefix: prefix
+        }, prefix + "bio.json");
+      }
+
       function createCosClient(cfg) {
         if (!window.COS) throw new Error("COS SDK 未加载");
         if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
@@ -2332,8 +2347,16 @@
           renderThumbs();
           applyItem(current, { restartAudio: false });
           const url = publicUrl(cfg, galleryKey);
-          setCloudStatus("已保存 " + savedCount + " 条到云端：" + url);
-          alert("已保存 " + savedCount + " 条到云端。\n" + url + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。");
+          let bioNote = "";
+          try {
+            const bioResult = await publishBioRecord(collectBioFromForm());
+            if (bioResult.ok) bioNote = "\n个人简介已同步：" + bioResult.url;
+          } catch (bioErr) {
+            console.warn("bio publish with gallery failed", bioErr);
+            bioNote = "\n个人简介云端同步失败，可在简介区单独点「保存到云端」。";
+          }
+          setCloudStatus("已保存" + savedCount + " 条到云端：" + url + (bioNote.indexOf("已同步") >= 0 ? "；简介已同步" : ""));
+          alert("已保存" + savedCount + " 条到云端。\n" + url + bioNote + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。")
         } catch (e) {
           console.error(e);
           const msg = (e && (e.message || e.error || e.Message)) || String(e);
@@ -2507,6 +2530,15 @@
         el.style.color = isErr ? "#e08b8b" : "var(--muted)";
       }
 
+      function sanitizeBio(input) {
+        if (!input || typeof input !== "object") return null;
+        const title = String(input.title != null ? input.title : DEFAULT_BIO.title).trim().slice(0, 40) || DEFAULT_BIO.title;
+        const text = String(input.text != null ? input.text : "");
+        let image = String(input.image != null ? input.image : "");
+        const imageName = String(input.imageName || "");
+        return { title: title, text: text, image: image, imageName: imageName };
+      }
+
       function readBioLocal() {
         try {
           const data = JSON.parse(localStorage.getItem(BIO_STORAGE_KEY) || "null");
@@ -2573,9 +2605,72 @@
         };
       }
 
+      async function publishBioRecord(bioInput) {
+        const cfg = readOssForm();
+        if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
+          return { ok: false, skipped: true };
+        }
+        const cos = createCosClient(cfg);
+        const prefix = cfg.prefix || "";
+        let bio = Object.assign({}, bioInput || collectBioFromForm());
+        let imageUrl = String(bio.image || "");
+        const pending = bio.pendingFile || window.__bioPendingFile || null;
+
+        if (pending) {
+          const extRaw = ((pending.name || "").split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+          const ext = extRaw === "jpeg" ? "jpg" : extRaw;
+          const key = prefix + "uploads/bio-" + Date.now() + "." + ext;
+          await putCosObject(cos, cfg, key, pending, pending.type || "image/jpeg");
+          imageUrl = publicUrl(cfg, key);
+          window.__bioPendingFile = null;
+          bio.imageName = pending.name || ("bio." + ext);
+        } else if (imageUrl.indexOf("data:image/") === 0) {
+          const blob = dataURLtoBlob(imageUrl);
+          const ext = (blob.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
+          const key = prefix + "uploads/bio-" + Date.now() + "." + ext;
+          await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
+          imageUrl = publicUrl(cfg, key);
+        } else if (imageUrl.indexOf("blob:") === 0) {
+          imageUrl = DEFAULT_BIO.image;
+        }
+
+        const payload = {
+          title: bio.title || DEFAULT_BIO.title,
+          text: bio.text != null ? bio.text : "",
+          image: imageUrl || "",
+          imageName: bio.imageName || ""
+        };
+        if (payload.image.indexOf("data:") === 0 || payload.image.indexOf("blob:") === 0) {
+          throw new Error("简介图片仍未上传，不能写入 bio.json");
+        }
+        const key = prefix + "bio.json";
+        const body = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+        await putCosObject(cos, cfg, key, body, "application/json;charset=utf-8");
+        applyBio(payload);
+        saveBioLocal(payload);
+        return { ok: true, url: publicUrl({ bucket: cfg.bucket, region: cfg.region, cdn: "" }, key), bio: payload };
+      }
+
+      async function refreshRemoteBio() {
+        const url = bioJsonUrl(loadOssConfig());
+        if (!url) return;
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return;
+          const raw = await res.json();
+          const data = sanitizeBio(raw);
+          if (!data) return;
+          applyBio(data);
+          saveBioLocal(data);
+        } catch (e) {
+          console.warn("bio fetch failed", e && e.message);
+        }
+      }
+
       function setupBioUI() {
         const file = document.getElementById("ed-bio-file");
         const applyBtn = document.getElementById("ed-bio-apply");
+        const cloudBtn = document.getElementById("ed-bio-cloud");
         const clearBtn = document.getElementById("ed-bio-clear-img");
         if (file) {
           file.addEventListener("change", function () {
@@ -2600,7 +2695,7 @@
               bio.imageName = f.name || "bio.jpg";
               bio.pendingFile = f;
               saveBioLocal(bio);
-              setBioStatus("已更新本机预览图（未推 GitHub）。");
+              setBioStatus("已更新本机预览图。点「保存到云端」后其他设备可见。");
             };
             reader.readAsDataURL(f);
           });
@@ -2613,6 +2708,29 @@
             setBioStatus("个人简介已应用到本页，并保存在本机浏览器。");
           });
         }
+        if (cloudBtn) {
+          cloudBtn.addEventListener("click", async function () {
+            const cfg = readOssForm();
+            if (!cfg.bucket || !cfg.accessKeyId) {
+              const oss = document.getElementById("oss-box");
+              if (oss) oss.open = true;
+              setBioStatus("请先展开并填写腾讯云 COS 设置。", true);
+              return;
+            }
+            cloudBtn.disabled = true;
+            setBioStatus("正在上传个人简介到 COS…");
+            try {
+              const result = await publishBioRecord(collectBioFromForm());
+              if (result.ok) setBioStatus("个人简介已写入云端：" + result.url + "。其他设备刷新后可见。");
+              else setBioStatus("未填写完整 COS 密钥，仅保存在本机。", true);
+            } catch (e) {
+              const msg = (e && (e.message || e.error || e.Message)) || String(e);
+              setBioStatus("云端保存失败：" + msg, true);
+            } finally {
+              cloudBtn.disabled = false;
+            }
+          });
+        }
         if (clearBtn) {
           clearBtn.addEventListener("click", function () {
             window.__bioPendingFile = null;
@@ -2623,11 +2741,12 @@
             bio.imageName = "";
             applyBio(bio);
             saveBioLocal(bio);
-            setBioStatus("已清除简介图片。");
+            setBioStatus("已清除简介图片（本机）。若要同步到其他设备，请再点「保存到云端」。");
           });
         }
         applyBio(readBioLocal() || DEFAULT_BIO);
       }
+
       function setThemeStatus(text, isErr) {
         const el = document.getElementById("theme-status");
         if (!el) return;
@@ -2963,6 +3082,7 @@
         fillOssForm();
         editAuthLoaded = refreshRemoteEditHash();
         refreshRemoteTheme();
+        refreshRemoteBio();
         const cfg = loadOssConfig();
         const remoteUrl = cosGalleryUrl(cfg);
         let loaded = false;
