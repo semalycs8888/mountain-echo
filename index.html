@@ -377,11 +377,22 @@
 
     .poem-verse p { margin: 0; }
 
-    /* —— META —— */
+    /* —— TAGS (left module, above poem) —— */
+    .tags-module {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0;
+    }
+    .tags-module[hidden] { display: none; }
+
+    /* —— META (right pills stay below poem) —— */
     .meta-row {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: flex-end;
       gap: 0.5rem 0.75rem;
       font-size: var(--size-ui);
       color: var(--muted);
@@ -998,6 +1009,9 @@
       <div class="thumbs" role="listbox" aria-label="选择图片" id="thumbs"></div>
     </section>
 
+    <!-- Tags (left module, above poem) -->
+    <div class="tags-module" id="meta-tags" aria-label="分类标签"></div>
+
     <!-- Poem -->
     <article class="poem-card">
       <h1 class="poem-title" id="poem-title">山回未尽</h1>
@@ -1010,9 +1024,8 @@
       </div>
     </article>
 
-    <!-- Meta -->
+    <!-- Meta (right pills unchanged position) -->
     <div class="meta-row">
-      <div class="meta-info" id="meta-tags" aria-label="分类标签"></div>
       <div class="pills">
         <span class="pill" id="pill-resolution" hidden></span>
         <span class="pill" id="pill-track">🎵 雾里弦声</span>
@@ -1096,10 +1109,10 @@
       <label>曲名
         <input type="text" id="ed-track" maxlength="40" />
       </label>
-      <label>分类标签
+      <label>左侧标签（古诗上方）
         <input type="text" id="ed-tags" placeholder="摄影、正方形、风景、蓝调" />
       </label>
-      <p class="editor-hint">用逗号、顿号或空格分隔多个标签，可随意填写。</p>
+      <p class="editor-hint">用逗号、顿号或空格分隔。显示在古诗模块上方；右侧分辨率/曲名胶囊位置不变。</p>
       <label>分辨率
         <input type="text" id="ed-resolution" maxlength="40" placeholder="2048×2048" />
       </label>
