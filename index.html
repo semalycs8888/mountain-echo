@@ -2288,6 +2288,40 @@
         });
       }
 
+
+      function cosHostFor(cfg) {
+        return String(cfg.bucket || "").trim() + ".cos." + normalizeCosRegion(cfg.region) + ".myqcloud.com";
+      }
+
+      function isForeignCosUrl(url, cfg) {
+        if (!url || typeof url !== "string") return false;
+        if (!/^https?:\/\//i.test(url)) return false;
+        try {
+          const host = new URL(url).hostname.toLowerCase();
+          if (!/\.cos\.[a-z0-9-]+\.myqcloud\.com$/i.test(host)) return false;
+          return host !== cosHostFor(cfg).toLowerCase();
+        } catch (e) {
+          return false;
+        }
+      }
+
+      async function fetchUrlBlob(url) {
+        const res = await fetch(url, { mode: "cors", credentials: "omit" });
+        if (!res.ok) throw new Error("迁移下载失败 HTTP " + res.status + "：" + url);
+        return res.blob();
+      }
+
+      function extFromBlobOrUrl(blob, url, fallback) {
+        const fromType = ((blob && blob.type) || "").split("/")[1] || "";
+        if (fromType) return fromType.replace("jpeg", "jpg");
+        try {
+          const pathName = new URL(url).pathname;
+          const m = pathName.match(/\.([a-z0-9]+)$/i);
+          if (m) return m[1].toLowerCase().replace("jpeg", "jpg");
+        } catch (e) {}
+        return fallback || "jpg";
+      }
+
       function putCosObject(cos, cfg, key, body, contentType) {
         return new Promise(function (resolve, reject) {
           cos.putObject({
@@ -2324,6 +2358,13 @@
               const key = prefix + "uploads/" + Date.now() + "-" + i + "." + ext;
               await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
               published[i].src = publicUrl(cfg, key);
+            } else if (isForeignCosUrl(src, cfg)) {
+              setCloudStatus("正在把第 " + (i + 1) + " 张图迁到新桶…");
+              const blob = await fetchUrlBlob(src);
+              const ext = extFromBlobOrUrl(blob, src, "jpg");
+              const key = prefix + "uploads/" + Date.now() + "-" + i + "." + ext;
+              await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
+              published[i].src = publicUrl(cfg, key);
             }
             const audioFile = pendingAudio.get(i);
             let audioSrc = published[i].audioSrc ? String(published[i].audioSrc) : "";
@@ -2334,6 +2375,13 @@
               published[i].audioName = audioFile.name;
             } else if (audioSrc.indexOf("blob:") === 0 || audioSrc.indexOf("data:") === 0) {
               delete published[i].audioSrc;
+            } else if (isForeignCosUrl(audioSrc, cfg)) {
+              setCloudStatus("正在把第 " + (i + 1) + " 首音频迁到新桶…");
+              const blob = await fetchUrlBlob(audioSrc);
+              const name = published[i].audioName || ("audio-" + i + ".mp3");
+              const key = prefix + "audio/" + Date.now() + "-" + i + "-" + safeAudioName(name);
+              await putCosObject(cos, cfg, key, blob, blob.type || "audio/mpeg");
+              published[i].audioSrc = publicUrl(cfg, key);
             }
           }
 
@@ -2645,6 +2693,12 @@
           imageUrl = publicUrl(cfg, key);
         } else if (imageUrl.indexOf("blob:") === 0) {
           imageUrl = DEFAULT_BIO.image;
+        } else if (isForeignCosUrl(imageUrl, cfg)) {
+          const blob = await fetchUrlBlob(imageUrl);
+          const ext = extFromBlobOrUrl(blob, imageUrl, "jpg");
+          const key = prefix + "uploads/bio-" + Date.now() + "." + ext;
+          await putCosObject(cos, cfg, key, blob, blob.type || "image/jpeg");
+          imageUrl = publicUrl(cfg, key);
         }
 
         const payload = {
