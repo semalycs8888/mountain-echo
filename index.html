@@ -1185,7 +1185,7 @@
       <div class="theme-box" id="theme-box">
         <div class="theme-head">
           <h3>模块配色</h3>
-          <p class="editor-hint">先选一套预设，再按模块微调。写入云端后，其他设备刷新会看到同一套颜色。</p>
+          <p class="editor-hint">先选一套预设，再按模块微调。改色会立刻显示；点「保存到云端」会一并写入 theme-colors.json，其他设备刷新可见。</p>
         </div>
         <div class="theme-presets" id="theme-presets" role="group" aria-label="配色预设"></div>
         <div id="theme-fields"></div>
@@ -1197,7 +1197,7 @@
       <div class="theme-box font-box" id="font-box">
         <div class="theme-head">
           <h3>字体</h3>
-          <p class="editor-hint">为各文字模块选择字体和大小。改动会立刻显示；写入云端后，其他设备刷新也会看到。</p>
+          <p class="editor-hint">为各文字模块选择字体和大小。改动会立刻显示；点「保存到云端」会一并写入云端，其他设备刷新可见。</p>
         </div>
         <div id="font-fields"></div>
         <div class="slot-actions">
@@ -2477,8 +2477,26 @@
             console.warn("bio publish with gallery failed", bioErr);
             bioNote = "\n个人简介云端同步失败，可在简介区单独点「保存到云端」。";
           }
-          setCloudStatus("已保存" + savedCount + " 条到云端：" + url + (bioNote.indexOf("已同步") >= 0 ? "；简介已同步" : ""));
-          alert("已保存" + savedCount + " 条到云端。\n" + url + bioNote + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。")
+          let themeNote = "";
+          try {
+            const themeColors = sanitizeThemeColors(readThemeInputs()) || loadThemeLocal() || Object.assign({}, THEME_CHARCOAL);
+            const themeFonts = sanitizeFonts(readFontInputs()) || loadFontsLocal() || JSON.parse(JSON.stringify(FONT_DEFAULTS));
+            applyThemeColors(themeColors);
+            applyFonts(themeFonts);
+            saveThemeLocal(themeColors);
+            saveFontsLocal(themeFonts);
+            const themeResult = await publishThemeRecord();
+            if (themeResult.ok) themeNote = "\n主题配色/字体已同步：" + themeResult.url;
+            else if (themeResult.skipped) themeNote = "\n主题未写入云端（COS 密钥不完整）。";
+          } catch (themeErr) {
+            console.warn("theme publish with gallery failed", themeErr);
+            themeNote = "\n主题云端同步失败，可在模块配色区改一下颜色重试。";
+          }
+          const extras = [];
+          if (bioNote.indexOf("已同步") >= 0) extras.push("简介已同步");
+          if (themeNote.indexOf("已同步") >= 0) extras.push("主题已同步");
+          setCloudStatus("已保存" + savedCount + " 条到云端：" + url + (extras.length ? "；" + extras.join("；") : ""));
+          alert("已保存" + savedCount + " 条到云端。\n" + url + bioNote + themeNote + "\n请确认静态站点已上传 index.html 与 assets，并允许公共读；Bucket 需配置 CORS。");
         } catch (e) {
           console.error(e);
           const msg = (e && (e.message || e.error || e.Message)) || String(e);
@@ -2888,9 +2906,9 @@
         if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
           return { ok: false, skipped: true };
         }
-        const payload = {};
-        if (rec.colors) payload.colors = rec.colors;
-        if (rec.fonts) payload.fonts = rec.fonts;
+        const colors = sanitizeThemeColors(rec.colors) || Object.assign({}, THEME_CHARCOAL);
+        const fonts = sanitizeFonts(rec.fonts) || JSON.parse(JSON.stringify(FONT_DEFAULTS));
+        const payload = { colors: colors, fonts: fonts };
         const key = (cfg.prefix || "") + "theme-colors.json";
         const body = new Blob([JSON.stringify(payload)], { type: "application/json;charset=utf-8" });
         await putCosObject(createCosClient(cfg), cfg, key, body, "application/json;charset=utf-8");
