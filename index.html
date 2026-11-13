@@ -1090,6 +1090,20 @@
       <button type="button" class="editor-close" id="editor-close" aria-label="关闭">×</button>
     </div>
     <div class="editor-body">
+      <div class="theme-box" id="site-title-box">
+        <div class="theme-head">
+          <h3>网站标题</h3>
+          <p class="editor-hint">这是浏览器标签上的标题，默认是「墨未干，调正浓」。点「应用到页面」先保存在本机；配置了 COS 密钥后点「保存到云端」写入 site-title.json，其他设备刷新可见。</p>
+        </div>
+        <label>标题
+          <input type="text" id="ed-site-title" maxlength="40" value="墨未干，调正浓" />
+        </label>
+        <div class="slot-actions">
+          <button type="button" id="ed-site-title-apply">应用到页面</button>
+          <button type="button" id="ed-site-title-cloud">保存到云端</button>
+        </div>
+        <p class="editor-hint" id="site-title-status"></p>
+      </div>
       <label>当前条目
         <select id="ed-index"></select>
       </label>
@@ -1256,6 +1270,8 @@
       const EDIT_AUTH_STORAGE_KEY = "mountain-echo-edit-sha256";
       const THEME_STORAGE_KEY = "mountain-echo-theme-colors";
       const BIO_STORAGE_KEY = "mountain-echo-bio-v1";
+      const SITE_TITLE_STORAGE_KEY = "mountain-echo-site-title-v1";
+      const DEFAULT_SITE_TITLE = "墨未干，调正浓";
       const DEFAULT_BIO = {
         title: "个人简介",
         text: "在山与雾之间写字、拍照、听一段慢弦。这里放一段关于自己的话，图片在左上角，文字会绕着它铺满。",
@@ -2338,6 +2354,20 @@
         }, prefix + "bio.json");
       }
 
+      function siteTitleUrl(cfg) {
+        const src = cfg || {};
+        const bucket = String(src.bucket || "").trim() || PUBLIC_COS.bucket;
+        const region = normalizeCosRegion(src.region) || PUBLIC_COS.region;
+        const prefix = normalizePrefix(src.prefix);
+        if (!bucket || !region) return "";
+        return publicUrl({
+          bucket: bucket,
+          region: region,
+          cdn: "",
+          prefix: prefix
+        }, prefix + "site-title.json");
+      }
+
       function createCosClient(cfg) {
         if (!window.COS) throw new Error("COS SDK 未加载");
         if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
@@ -2813,6 +2843,116 @@
         }
       }
 
+      function setSiteTitleStatus(text, isErr) {
+        const el = document.getElementById("site-title-status");
+        if (!el) return;
+        el.textContent = text || "";
+        el.style.color = isErr ? "#e08b8b" : "var(--muted)";
+      }
+
+      function sanitizeSiteTitle(input) {
+        if (input && typeof input === "object") input = input.title;
+        const title = String(input != null ? input : "").trim().slice(0, 40);
+        return title || DEFAULT_SITE_TITLE;
+      }
+
+      function readSiteTitleLocal() {
+        try {
+          const data = JSON.parse(localStorage.getItem(SITE_TITLE_STORAGE_KEY) || "null");
+          if (data == null) return null;
+          return sanitizeSiteTitle(data);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveSiteTitleLocal(title) {
+        const value = sanitizeSiteTitle(title);
+        localStorage.setItem(SITE_TITLE_STORAGE_KEY, JSON.stringify({ title: value }));
+        return value;
+      }
+
+      function applySiteTitle(title) {
+        const value = sanitizeSiteTitle(title != null ? title : readSiteTitleLocal());
+        document.title = value;
+        const input = document.getElementById("ed-site-title");
+        if (input) input.value = value;
+        return value;
+      }
+
+      function collectSiteTitleFromForm() {
+        const input = document.getElementById("ed-site-title");
+        return sanitizeSiteTitle(input ? input.value : readSiteTitleLocal());
+      }
+
+      async function publishSiteTitleRecord(titleInput) {
+        const cfg = readOssForm();
+        if (!cfg.region || !cfg.bucket || !cfg.accessKeyId || !cfg.accessKeySecret) {
+          return { ok: false, skipped: true };
+        }
+        const title = sanitizeSiteTitle(titleInput != null ? titleInput : collectSiteTitleFromForm());
+        const prefix = cfg.prefix || "";
+        const payload = { title: title };
+        const key = prefix + "site-title.json";
+        const body = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+        await putCosObject(createCosClient(cfg), cfg, key, body, "application/json;charset=utf-8");
+        applySiteTitle(title);
+        saveSiteTitleLocal(title);
+        return { ok: true, url: publicUrl({ bucket: cfg.bucket, region: cfg.region, cdn: "" }, key), title: title };
+      }
+
+      async function refreshRemoteSiteTitle() {
+        const url = siteTitleUrl(loadOssConfig());
+        if (!url) return;
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return;
+          const raw = await res.json();
+          const title = sanitizeSiteTitle(raw);
+          applySiteTitle(title);
+          saveSiteTitleLocal(title);
+        } catch (e) {
+          console.warn("site title fetch failed", e && e.message);
+        }
+      }
+
+      function setupSiteTitleUI() {
+        const applyBtn = document.getElementById("ed-site-title-apply");
+        const cloudBtn = document.getElementById("ed-site-title-cloud");
+        if (applyBtn) {
+          applyBtn.addEventListener("click", function () {
+            const title = collectSiteTitleFromForm();
+            applySiteTitle(title);
+            saveSiteTitleLocal(title);
+            setSiteTitleStatus("网站标题已应用到本页，并保存在本机浏览器。");
+          });
+        }
+        if (cloudBtn) {
+          cloudBtn.addEventListener("click", async function () {
+            const cfg = readOssForm();
+            if (!cfg.bucket || !cfg.accessKeyId) {
+              const oss = document.getElementById("oss-box");
+              if (oss) oss.open = true;
+              setSiteTitleStatus("请先展开并填写腾讯云 COS 设置。", true);
+              return;
+            }
+            cloudBtn.disabled = true;
+            setSiteTitleStatus("正在上传网站标题到 COS…");
+            try {
+              const result = await publishSiteTitleRecord(collectSiteTitleFromForm());
+              if (result.ok) setSiteTitleStatus("网站标题已写入云端：" + result.url + "。其他设备刷新后可见。");
+              else setSiteTitleStatus("未填写完整 COS 密钥，仅保存在本机。", true);
+            } catch (e) {
+              const msg = (e && (e.message || e.error || e.Message)) || String(e);
+              setSiteTitleStatus("云端保存失败：" + msg, true);
+            } finally {
+              cloudBtn.disabled = false;
+            }
+          });
+        }
+        applySiteTitle(readSiteTitleLocal() || DEFAULT_SITE_TITLE);
+      }
+
       function setupBioUI() {
         const file = document.getElementById("ed-bio-file");
         const applyBtn = document.getElementById("ed-bio-apply");
@@ -3225,10 +3365,12 @@
 
       async function boot() {
         applyBio(readBioLocal() || DEFAULT_BIO);
+        applySiteTitle(readSiteTitleLocal() || DEFAULT_SITE_TITLE);
         fillOssForm();
         editAuthLoaded = refreshRemoteEditHash();
         refreshRemoteTheme();
         refreshRemoteBio();
+        refreshRemoteSiteTitle();
         const cfg = loadOssConfig();
         const remoteUrl = cosGalleryUrl(cfg);
         let loaded = false;
@@ -3286,6 +3428,7 @@
       setupThemeUI();
       setupFontUI();
       setupBioUI();
+      setupSiteTitleUI();
       boot();
     })();
   </script>
